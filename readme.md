@@ -1,10 +1,10 @@
 - Installed Rtools, msys
 - Extracted a copy of boost in /home/boost_1_57_0
-- In msys in /etc/fstab, mount c:/Rtools/gcc-4.6.3 to /mingw
+- In msys in `/etc/fstab`, mount `c:/Rtools/gcc-4.6.3 /mingw`
 - Extract QuantLib-1.5.tar.gz
-- To configure run: CPPFLAGS="-I/home/boost_1_57_0" CXXFLAGS="-g0" ./configure
-- To build (box with 8 cores) run: make -j9
-- Add -m64 to CXXFLAGS to build x64 library
+- To configure run: `CPPFLAGS="-I/home/boost_1_57_0" CXXFLAGS="-g0" ./configure`
+- To build (box with 8 cores) run: `make -j9`
+- Add `-m64` to CXXFLAGS to build x64 library
 - Example of my Makevars.win file in RQuantLib:
 
 ```Make
