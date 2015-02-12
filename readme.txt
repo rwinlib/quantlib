@@ -4,6 +4,7 @@
 - Extract QuantLib-1.5.tar.gz
 - To configure run: CPPFLASG="-I/home/boost_1_57_0" CXXFLAGS="-g0" ./conifgure
 - To build (box with 8 cores) run: make -j9
+- Add -m64 to CXXFLAGS to build x64 library
 - Example of my Makevars.win file in RQuantLib:
 
 # Makevars.win 
