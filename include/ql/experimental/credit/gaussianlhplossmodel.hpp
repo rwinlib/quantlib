@@ -73,8 +73,8 @@ namespace QuantLib {
             const std::vector<Real>& recoveries);
 
         void update() {
-            sqrt1minuscorrel_ = sqrt(1.-correl_->value());
-            beta_ = sqrt(correl_->value());
+            sqrt1minuscorrel_ = std::sqrt(1.-correl_->value());
+            beta_ = std::sqrt(correl_->value());
             biphi_ = BivariateCumulativeNormalDistribution(
                 -beta_);
             // tell basket to notify instruments, etc, we are invalid
@@ -111,9 +111,9 @@ namespace QuantLib {
                 attach, detach);
         }
 
-        /*!  @param remaining fraction in live tranche units, not portfolio as 
-        a fraction of the remaining(live) tranche (i.e. a_remaining=0% and 
-        det_remaining=100%) 
+        /*!  @param remainingLossFraction fraction in live tranche
+             units, not portfolio as a fraction of the remaining(live)
+             tranche (i.e. a_remaining=0% and det_remaining=100%)
         */
         Real probOverLoss(const Date& d, Real remainingLossFraction) const;
 

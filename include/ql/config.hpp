@@ -45,7 +45,7 @@
 #define PACKAGE_NAME "QuantLib"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "QuantLib 1.5"
+#define PACKAGE_STRING "QuantLib 1.6"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "QuantLib"
@@ -54,7 +54,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.5"
+#define PACKAGE_VERSION "1.6"
 
 /* Define this if you want to enable sessions. */
 /* #undef QL_ENABLE_SESSIONS */
@@ -100,4 +100,4 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.5"
+#define VERSION "1.6"
