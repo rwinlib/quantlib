@@ -2,7 +2,7 @@
 
 /*
  Copyright (C) 2000, 2001, 2002, 2003 RiskMap srl
- Copyright (C) 2006 François du Vignaud
+ Copyright (C) 2006 FranÃ§ois du Vignaud
  Copyright (C) 2006, 2008 Ferdinando Ametrano
  Copyright (C) 2015 Peter Caspers
 
@@ -61,6 +61,7 @@ namespace QuantLib {
                     const std::vector<std::vector<Handle<Quote> > >& vols,
                     const DayCounter& dayCounter,
                     const bool flatExtrapolation = false,
+                    const VolatilityType type = ShiftedLognormal,
                     const std::vector<std::vector<Real> >& shifts
                     = std::vector<std::vector<Real> >());
         //! fixed reference date, floating market data
@@ -73,6 +74,7 @@ namespace QuantLib {
                     const std::vector<std::vector<Handle<Quote> > >& vols,
                     const DayCounter& dayCounter,
                     const bool flatExtrapolation = false,
+                    const VolatilityType type = ShiftedLognormal,
                     const std::vector<std::vector<Real> >& shifts
                     = std::vector<std::vector<Real> >());
         //! floating reference date, fixed market data
@@ -84,6 +86,7 @@ namespace QuantLib {
                     const Matrix& volatilities,
                     const DayCounter& dayCounter,
                     const bool flatExtrapolation = false,
+                    const VolatilityType type = ShiftedLognormal,
                     const Matrix& shifts = Matrix());
         //! fixed reference date, fixed market data
         SwaptionVolatilityMatrix(
@@ -95,6 +98,7 @@ namespace QuantLib {
                     const Matrix& volatilities,
                     const DayCounter& dayCounter,
                     const bool flatExtrapolation = false,
+                    const VolatilityType type = ShiftedLognormal,
                     const Matrix& shifts = Matrix());
         // fixed reference date and fixed market data, option dates
         SwaptionVolatilityMatrix(const Date& referenceDate,
@@ -103,7 +107,9 @@ namespace QuantLib {
                                  const Matrix& volatilities,
                                  const DayCounter& dayCounter,
                                  const bool flatExtrapolation = false,
+                                 const VolatilityType type = ShiftedLognormal,
                                  const Matrix& shifts = Matrix());
+
         //! \name LazyObject interface
         //@{
         void performCalculations() const;
@@ -136,6 +142,7 @@ namespace QuantLib {
                                   interpolation_.locateX(swapLength));
         }
         //@}
+        VolatilityType volatilityType() const;
       protected:
         // defining the following method would break CMS test suite
         // to be further investigated
@@ -146,11 +153,7 @@ namespace QuantLib {
         Volatility volatilityImpl(Time optionTime,
                                   Time swapLength,
                                   Rate strike) const;
-        Real shift(Time optionTime, Time swapLength) const {
-            calculate();
-            Real tmp = interpolationShifts_(swapLength, optionTime, true);
-            return tmp;
-        }
+        Real shiftImpl(Time optionTime, Time swapLength) const;
       private:
         void checkInputs(Size volRows,
                          Size volsColumns,
@@ -161,6 +164,7 @@ namespace QuantLib {
         std::vector<std::vector<Real> > shiftValues_;
         mutable Matrix volatilities_, shifts_;
         Interpolation2D interpolation_, interpolationShifts_;
+        VolatilityType volatilityType_;
     };
 
     // inline definitions
@@ -170,7 +174,7 @@ namespace QuantLib {
     }
 
     inline Rate SwaptionVolatilityMatrix::minStrike() const {
-        return QL_MIN_REAL;
+        return -QL_MAX_REAL;
     }
 
     inline Rate SwaptionVolatilityMatrix::maxStrike() const {
@@ -188,6 +192,16 @@ namespace QuantLib {
         return interpolation_(swapLength, optionTime, true);
     }
 
-}
+    inline VolatilityType SwaptionVolatilityMatrix::volatilityType() const {
+        return volatilityType_;
+    }
+
+    inline Real SwaptionVolatilityMatrix::shiftImpl(Time optionTime,
+                                                    Time swapLength) const {
+        calculate();
+        Real tmp = interpolationShifts_(swapLength, optionTime, true);
+        return tmp;
+    }
+} // namespace QuantLib
 
 #endif

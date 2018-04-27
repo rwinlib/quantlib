@@ -40,13 +40,13 @@ namespace QuantLib {
             Calendar calendar_;
           public:
             std::string name() const;
-            BigInteger dayCount(const Date& d1,
-                                const Date& d2) const;
+            Date::serial_type dayCount(const Date& d1,
+                                       const Date& d2) const;
             Time yearFraction(const Date& d1,
                               const Date& d2,
                               const Date&,
                               const Date&) const;
-            Impl(Calendar c) { calendar_ = c; }
+            explicit Impl(Calendar c) { calendar_ = c; }
         };
       public:
         Business252(Calendar c = Brazil())

@@ -26,6 +26,7 @@
 #include <ql/utilities/disposable.hpp>
 #include <ql/experimental/credit/basket.hpp>
 
+#include <ql/utilities/null_deleter.hpp>
 
 /* Intended to replace LossDistribution in 
     ql/experimental/credit/lossdistribution, not sure its covering all the 
@@ -33,10 +34,6 @@
 */
 
 namespace QuantLib {
-
-    namespace detail {
-        inline void no_deletion(Basket*) {}
-    }
 
     /*! Default loss model interface definition.
     Allows communication between the basket and specific algorithms. Intended to
@@ -72,10 +69,10 @@ namespace QuantLib {
             QL_FAIL("expectedTrancheLoss Not implemented for this model.");
         }
         /*! Probability of the tranche losing the same or more than the 
-          fractional amount given.
+            fractional amount given.
 
-            @param lossFraction A fraction of losses over the tranche 
-                                notional (not the portfolio)
+            The passed lossFraction is a fraction of losses over the
+            tranche notional (not the portfolio).
         */
         virtual Probability probOverLoss(
             const Date& d, Real lossFraction) const {
@@ -156,7 +153,7 @@ namespace QuantLib {
             until the basket takes in a new model....
             ..alternatively both old basket and model could be forced reset here
             */
-            basket_.linkTo(boost::shared_ptr<Basket>(bskt, detail::no_deletion),
+            basket_.linkTo(boost::shared_ptr<Basket>(bskt, null_deleter()),
                            false);
             resetModel();// or rename to setBasketImpl(...)
         }

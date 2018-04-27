@@ -27,15 +27,17 @@
 
 #include <ql/indexes/ibor/libor.hpp>
 #include <ql/time/calendars/canada.hpp>
-#include <ql/time/daycounters/actual360.hpp>
+#include <ql/time/daycounters/actual365fixed.hpp>
 #include <ql/currencies/america.hpp>
 
 namespace QuantLib {
 
     //! %CAD LIBOR rate
-    /*! Canadian Dollar LIBOR fixed by BBA.
+    /*! Canadian Dollar LIBOR discontinued as of 2013.
 
-        See <http://www.bba.org.uk/bba/jsp/polopoly.jsp?d=225&a=1414>.
+        Conventions are taken from a number of sources including
+        OpenGamma "Interest Rate Instruments and Market Conventions
+        Guide", BBG, IKON.
 
         \warning This is the rate fixed in London by BBA. Use CDOR if
                  you're interested in the Canadian fixing by IDA.
@@ -46,22 +48,22 @@ namespace QuantLib {
                  const Handle<YieldTermStructure>& h =
                                     Handle<YieldTermStructure>())
         : Libor("CADLibor", tenor,
-                2,
+                0,
                 CADCurrency(),
                 Canada(),
-                Actual360(), h) {}
+                Actual365Fixed(), h) {}
     };
 
     //! Overnight %CAD %Libor index
     class CADLiborON : public DailyTenorLibor {
       public:
-        CADLiborON(const Handle<YieldTermStructure>& h =
+        explicit CADLiborON(const Handle<YieldTermStructure>& h =
                                     Handle<YieldTermStructure>())
         : DailyTenorLibor("CADLibor",
                           0,
                           CADCurrency(),
                           Canada(),
-                          Actual360(), h) {}
+                          Actual365Fixed(), h) {}
     };
 
 }

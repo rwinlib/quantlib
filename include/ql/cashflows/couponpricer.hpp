@@ -4,6 +4,7 @@
  Copyright (C) 2007 Giorgio Facchinetti
  Copyright (C) 2007 Cristina Duminuco
  Copyright (C) 2011 Ferdinando Ametrano
+ Copyright (C) 2015 Peter Caspers
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -31,6 +32,7 @@
 #include <ql/indexes/iborindex.hpp>
 #include <ql/cashflow.hpp>
 #include <ql/option.hpp>
+#include <ql/quotes/simplequote.hpp>
 
 namespace QuantLib {
 
@@ -61,9 +63,12 @@ namespace QuantLib {
     //! base pricer for capped/floored Ibor coupons
     class IborCouponPricer : public FloatingRateCouponPricer {
       public:
-        IborCouponPricer(const Handle<OptionletVolatilityStructure>& v =
-                                          Handle<OptionletVolatilityStructure>())
-        : capletVol_(v) { registerWith(capletVol_); }
+        explicit IborCouponPricer(
+            const Handle<OptionletVolatilityStructure>& v =
+                                       Handle<OptionletVolatilityStructure>())
+        : capletVol_(v) {
+            registerWith(capletVol_);
+        }
 
         Handle<OptionletVolatilityStructure> capletVolatility() const{
             return capletVol_;
@@ -80,14 +85,29 @@ namespace QuantLib {
         Handle<OptionletVolatilityStructure> capletVol_;
     };
 
-    //! Black-formula pricer for capped/floored Ibor coupons
+    /*! Black-formula pricer for capped/floored Ibor coupons
+        References for timing adjustments
+        Black76             Hull, Options, Futures and other
+                            derivatives, 4th ed., page 550
+        BivariateLognormal  http://ssrn.com/abstract=2170721 */
     class BlackIborCouponPricer : public IborCouponPricer {
       public:
-        BlackIborCouponPricer(const Handle<OptionletVolatilityStructure>& v =
-                                        Handle<OptionletVolatilityStructure>())
-        : IborCouponPricer(v) {};
+        enum TimingAdjustment { Black76, BivariateLognormal };
+        BlackIborCouponPricer(
+            const Handle<OptionletVolatilityStructure>& v =
+                Handle<OptionletVolatilityStructure>(),
+            const TimingAdjustment timingAdjustment = Black76,
+            const Handle<Quote> correlation =
+                Handle<Quote>(boost::shared_ptr<Quote>(new SimpleQuote(1.0))))
+            : IborCouponPricer(v), timingAdjustment_(timingAdjustment),
+              correlation_(correlation) {
+            QL_REQUIRE(timingAdjustment_ == Black76 ||
+                           timingAdjustment_ == BivariateLognormal,
+                       "unknown timing adjustment (code " << timingAdjustment_
+                                                          << ")");
+            registerWith(correlation_);
+        };
         virtual void initialize(const FloatingRateCoupon& coupon);
-        /* */
         Real swapletPrice() const;
         Rate swapletRate() const;
         Real capletPrice(Rate effectiveCap) const;
@@ -109,14 +129,21 @@ namespace QuantLib {
         Real spreadLegValue_;
 
         const FloatingRateCoupon* coupon_;
+
+      private:
+        const TimingAdjustment timingAdjustment_;
+        const Handle<Quote> correlation_;
     };
 
     //! base pricer for vanilla CMS coupons
     class CmsCouponPricer : public FloatingRateCouponPricer {
       public:
-        CmsCouponPricer(const Handle<SwaptionVolatilityStructure>& v =
-                                        Handle<SwaptionVolatilityStructure>())
-        : swaptionVol_(v) { registerWith(swaptionVol_); }
+        explicit CmsCouponPricer(
+            const Handle<SwaptionVolatilityStructure>& v =
+                                       Handle<SwaptionVolatilityStructure>())
+        : swaptionVol_(v) {
+            registerWith(swaptionVol_);
+        }
 
         Handle<SwaptionVolatilityStructure> swaptionVolatility() const{
             return swaptionVol_;
@@ -139,6 +166,7 @@ namespace QuantLib {
     public:
         virtual Real meanReversion() const = 0;
         virtual void setMeanReversion(const Handle<Quote>&) = 0;
+        virtual ~MeanRevertingPricer() {}
     };
 
     void setCouponPricer(const Leg& leg,
@@ -147,6 +175,25 @@ namespace QuantLib {
     void setCouponPricers(
             const Leg& leg,
             const std::vector<boost::shared_ptr<FloatingRateCouponPricer> >&);
+
+    /*! set the first matching pricer (if any) to each coupon of the leg */
+    void setCouponPricers(
+            const Leg& leg,
+            const boost::shared_ptr<FloatingRateCouponPricer>&,
+            const boost::shared_ptr<FloatingRateCouponPricer>&);
+
+    void setCouponPricers(
+            const Leg& leg,
+            const boost::shared_ptr<FloatingRateCouponPricer>&,
+            const boost::shared_ptr<FloatingRateCouponPricer>&,
+            const boost::shared_ptr<FloatingRateCouponPricer>&);
+
+    void setCouponPricers(
+            const Leg& leg,
+            const boost::shared_ptr<FloatingRateCouponPricer>&,
+            const boost::shared_ptr<FloatingRateCouponPricer>&,
+            const boost::shared_ptr<FloatingRateCouponPricer>&,
+            const boost::shared_ptr<FloatingRateCouponPricer>&);
 
     // inline
 

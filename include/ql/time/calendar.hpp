@@ -26,6 +26,7 @@
 #ifndef quantlib_calendar_hpp
 #define quantlib_calendar_hpp
 
+#include <ql/errors.hpp>
 #include <ql/time/date.hpp>
 #include <ql/time/businessdayconvention.hpp>
 #include <boost/shared_ptr.hpp>
@@ -95,8 +96,8 @@ namespace QuantLib {
             weekend for the given market.
         */
         bool isWeekend(Weekday w) const;
-        /*! Returns <tt>true</tt> iff the date is last business day for the
-            month in given market.
+        /*! Returns <tt>true</tt> iff in the given market, the date is on
+            or after the last business day for that month.
         */
         bool isEndOfMonth(const Date& d) const;
         //! last business day of the month to which the given date belongs
@@ -138,10 +139,10 @@ namespace QuantLib {
         /*! Calculates the number of business days between two given
             dates and returns the result.
         */
-        BigInteger businessDaysBetween(const Date& from,
-                                       const Date& to,
-                                       bool includeFirst = true,
-                                       bool includeLast = false) const;
+        Date::serial_type businessDaysBetween(const Date& from,
+                                              const Date& to,
+                                              bool includeFirst = true,
+                                              bool includeLast = false) const;
         //@}
 
       protected:
@@ -189,15 +190,25 @@ namespace QuantLib {
     }
 
     inline std::string Calendar::name() const {
+        QL_REQUIRE(impl_, "no implementation provided");
         return impl_->name();
     }
 
     inline bool Calendar::isBusinessDay(const Date& d) const {
-        if (impl_->addedHolidays.find(d) != impl_->addedHolidays.end())
+        QL_REQUIRE(impl_, "no implementation provided");
+
+#ifdef QL_HIGH_RESOLUTION_DATE
+        const Date _d(d.dayOfMonth(), d.month(), d.year());
+#else
+        const Date& _d = d;
+#endif
+
+        if (impl_->addedHolidays.find(_d) != impl_->addedHolidays.end())
             return false;
-        if (impl_->removedHolidays.find(d) != impl_->removedHolidays.end())
+        if (impl_->removedHolidays.find(_d) != impl_->removedHolidays.end())
             return true;
-        return impl_->isBusinessDay(d);
+
+        return impl_->isBusinessDay(_d);
     }
 
     inline bool Calendar::isEndOfMonth(const Date& d) const {
@@ -213,6 +224,7 @@ namespace QuantLib {
     }
 
     inline bool Calendar::isWeekend(Weekday w) const {
+        QL_REQUIRE(impl_, "no implementation provided");
         return impl_->isWeekend(w);
     }
 

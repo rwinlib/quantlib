@@ -2,62 +2,70 @@
 /* ql/config.hpp.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-/* #undef HAVE_DLFCN_H */
+/* #undef QL_HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+#define QL_HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
+#define QL_HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
+#define QL_HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-#define HAVE_STDLIB_H 1
+#define QL_HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
-#define HAVE_STRINGS_H 1
+#define QL_HAVE_STRINGS_H 1
 
 /* Define to 1 if you have the <string.h> header file. */
-#define HAVE_STRING_H 1
+#define QL_HAVE_STRING_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-#define HAVE_SYS_STAT_H 1
+#define QL_HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
+#define QL_HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#define HAVE_UNISTD_H 1
+#define QL_HAVE_UNISTD_H 1
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
 
 /* Name of package */
-#define PACKAGE "QuantLib"
+#define QL_PACKAGE "QuantLib"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "quantlib-dev@lists.sourceforge.net"
+#define QL_PACKAGE_BUGREPORT "quantlib-dev@lists.sourceforge.net"
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "QuantLib"
+#define QL_PACKAGE_NAME "QuantLib"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "QuantLib 1.6"
+#define QL_PACKAGE_STRING "QuantLib 1.12.1"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "QuantLib"
+#define QL_PACKAGE_TARNAME "QuantLib"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+#define QL_PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.6"
+#define QL_PACKAGE_VERSION "1.12.1"
+
+/* Define this if you want to enable the parallel unit test runner. */
+/* #undef QL_ENABLE_PARALLEL_UNIT_TEST_RUNNER */
 
 /* Define this if you want to enable sessions. */
 /* #undef QL_ENABLE_SESSIONS */
+
+/* Define this if you want thread-safe singleton initialization. */
+/* #undef QL_ENABLE_SINGLETON_THREAD_SAFE_INIT */
+
+/* Define this if you want to enable thread-safe observer pattern. */
+/* #undef QL_ENABLE_THREAD_SAFE_OBSERVER_PATTERN */
 
 /* Define this if tracing messages should allowed (whether they are actually
    emitted will depend on run-time settings.) */
@@ -80,6 +88,9 @@
 /* Define this if your compiler supports the long long type. */
 #define QL_HAVE_LONG_LONG /**/
 
+/* Define this if you want to enable high resolution date class. */
+#define QL_HIGH_RESOLUTION_DATE 1
+
 /* Define this if negative yield rates should be allowed. */
 #define QL_NEGATIVE_RATES 1
 
@@ -97,7 +108,7 @@
 /* #undef QL_USE_INDEXED_COUPON */
 
 /* Define to 1 if you have the ANSI C header files. */
-#define STDC_HEADERS 1
+#define QL_STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.6"
+#define QL_AC_VERSION "1.12.1"

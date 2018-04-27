@@ -3,6 +3,8 @@
 /*
  Copyright (C) 2000, 2001, 2002, 2003 RiskMap srl
  Copyright (C) 2003, 2004, 2005, 2006 StatPro Italia srl
+ Copyright (C) 2017 Peter Caspers
+ Copyright (C) 2017 Oleg Kulkov
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -33,9 +35,9 @@
 namespace QuantLib {
 
     //! %USD %LIBOR rate
-    /*! US Dollar LIBOR fixed by BBA.
+    /*! US Dollar LIBOR fixed by ICE.
 
-        See <http://www.bba.org.uk/bba/jsp/polopoly.jsp?d=225&a=1414>.
+        See <https://www.theice.com/marketdata/reports/170>.
     */
     class USDLibor : public Libor {
       public:
@@ -45,11 +47,11 @@ namespace QuantLib {
         : Libor("USDLibor", tenor,
                 2,
                 USDCurrency(),
-                UnitedStates(UnitedStates::Settlement),
+                UnitedStates(UnitedStates::LiborImpact),
                 Actual360(), h) {}
     };
 
-    //! base class for the one day deposit BBA %USD %LIBOR indexes
+    //! base class for the one day deposit ICE %USD %LIBOR indexes
     class DailyTenorUSDLibor : public DailyTenorLibor {
       public:
         DailyTenorUSDLibor(Natural settlementDays,
@@ -57,14 +59,14 @@ namespace QuantLib {
                                     Handle<YieldTermStructure>())
         : DailyTenorLibor("USDLibor", settlementDays,
                           USDCurrency(),
-                          UnitedStates(UnitedStates::Settlement),
+                          UnitedStates(UnitedStates::LiborImpact),
                           Actual360(), h) {}
     };
 
     //! Overnight %USD %Libor index
     class USDLiborON : public DailyTenorUSDLibor {
       public:
-        USDLiborON(const Handle<YieldTermStructure>& h =
+        explicit USDLiborON(const Handle<YieldTermStructure>& h =
                                     Handle<YieldTermStructure>())
         : DailyTenorUSDLibor(0, h) {}
     };

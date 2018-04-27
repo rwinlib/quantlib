@@ -6,6 +6,7 @@
  Copyright (C) 2007, 2008, 2009, 2015 Ferdinando Ametrano
  Copyright (C) 2007, 2009 Roland Lichters
  Copyright (C) 2015 Maddalena Zanzi
+ Copyright (C) 2015 Paolo Mazzocchi
 
  This file is part of QuantLib, a free-software/open-source library
  for financial quantitative analysts and developers - http://quantlib.org/
@@ -22,7 +23,7 @@
 */
 
 /*! \file ratehelpers.hpp
-    \brief deposit, FRA, futures, and swap rate helpers
+    \brief deposit, FRA, futures, and various swap rate helpers
 */
 
 #ifndef quantlib_ratehelpers_hpp
@@ -34,6 +35,7 @@
 #include <ql/instruments/futures.hpp>
 #include <ql/time/calendar.hpp>
 #include <ql/time/daycounter.hpp>
+#include <ql/time/calendars/unitedstates.hpp>
 
 namespace QuantLib {
 
@@ -153,7 +155,9 @@ namespace QuantLib {
                       const Calendar& calendar,
                       BusinessDayConvention convention,
                       bool endOfMonth,
-                      const DayCounter& dayCounter);
+                      const DayCounter& dayCounter,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(Rate rate,
                       Natural monthsToStart,
                       Natural monthsToEnd,
@@ -161,13 +165,19 @@ namespace QuantLib {
                       const Calendar& calendar,
                       BusinessDayConvention convention,
                       bool endOfMonth,
-                      const DayCounter& dayCounter);
+                      const DayCounter& dayCounter,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(const Handle<Quote>& rate,
                       Natural monthsToStart,
-                      const boost::shared_ptr<IborIndex>& iborIndex);
+                      const boost::shared_ptr<IborIndex>& iborIndex,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(Rate rate,
                       Natural monthsToStart,
-                      const boost::shared_ptr<IborIndex>& iborIndex);
+                      const boost::shared_ptr<IborIndex>& iborIndex,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(const Handle<Quote>& rate,
                       Period periodToStart,
                       Natural lengthInMonths,
@@ -175,7 +185,9 @@ namespace QuantLib {
                       const Calendar& calendar,
                       BusinessDayConvention convention,
                       bool endOfMonth,
-                      const DayCounter& dayCounter);
+                      const DayCounter& dayCounter,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(Rate rate,
                       Period periodToStart,
                       Natural lengthInMonths,
@@ -183,13 +195,19 @@ namespace QuantLib {
                       const Calendar& calendar,
                       BusinessDayConvention convention,
                       bool endOfMonth,
-                      const DayCounter& dayCounter);
+                      const DayCounter& dayCounter,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(const Handle<Quote>& rate,
                       Period periodToStart,
-                      const boost::shared_ptr<IborIndex>& iborIndex);
+                      const boost::shared_ptr<IborIndex>& iborIndex,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         FraRateHelper(Rate rate,
                       Period periodToStart,
-                      const boost::shared_ptr<IborIndex>& iborIndex);
+                      const boost::shared_ptr<IborIndex>& iborIndex,
+                      Pillar::Choice pillar = Pillar::LastRelevantDate,
+                      Date customPillarDate = Date());
         //! \name RateHelper interface
         //@{
         Real impliedQuote() const;
@@ -203,9 +221,11 @@ namespace QuantLib {
         void initializeDates();
         Date fixingDate_;
         Period periodToStart_;
+        Pillar::Choice pillarChoice_;
         boost::shared_ptr<IborIndex> iborIndex_;
         RelinkableHandle<YieldTermStructure> termStructureHandle_;
     };
+
 
     //! Rate helper for bootstrapping over swap rates
     /*! \todo use input SwapIndex to create the swap */
@@ -217,7 +237,9 @@ namespace QuantLib {
                        const Period& fwdStart = 0*Days,
                        // exogenous discounting curve
                        const Handle<YieldTermStructure>& discountingCurve
-                                            = Handle<YieldTermStructure>());
+                                               = Handle<YieldTermStructure>(),
+                       Pillar::Choice pillar = Pillar::LastRelevantDate,
+                       Date customPillarDate = Date());
         SwapRateHelper(const Handle<Quote>& rate,
                        const Period& tenor,
                        const Calendar& calendar,
@@ -232,14 +254,18 @@ namespace QuantLib {
                        // exogenous discounting curve
                        const Handle<YieldTermStructure>& discountingCurve
                                             = Handle<YieldTermStructure>(),
-                       Natural settlementDays = Null<Natural>());
+                       Natural settlementDays = Null<Natural>(),
+                       Pillar::Choice pillar = Pillar::LastRelevantDate,
+                       Date customPillarDate = Date());
         SwapRateHelper(Rate rate,
                        const boost::shared_ptr<SwapIndex>& swapIndex,
                        const Handle<Quote>& spread = Handle<Quote>(),
                        const Period& fwdStart = 0*Days,
                        // exogenous discounting curve
                        const Handle<YieldTermStructure>& discountingCurve
-                                            = Handle<YieldTermStructure>());
+                                            = Handle<YieldTermStructure>(),
+                       Pillar::Choice pillar = Pillar::LastRelevantDate,
+                       Date customPillarDate = Date());
         SwapRateHelper(Rate rate,
                        const Period& tenor,
                        const Calendar& calendar,
@@ -254,7 +280,9 @@ namespace QuantLib {
                        // exogenous discounting curve
                        const Handle<YieldTermStructure>& discountingCurve
                                             = Handle<YieldTermStructure>(),
-                       Natural settlementDays = Null<Natural>());
+                       Natural settlementDays = Null<Natural>(),
+                       Pillar::Choice pillar = Pillar::LastRelevantDate,
+                       Date customPillarDate = Date());
         //! \name RateHelper interface
         //@{
         Real impliedQuote() const;
@@ -274,6 +302,7 @@ namespace QuantLib {
         void initializeDates();
         Natural settlementDays_;
         Period tenor_;
+        Pillar::Choice pillarChoice_;
         Calendar calendar_;
         BusinessDayConvention fixedConvention_;
         Frequency fixedFrequency_;
@@ -286,6 +315,7 @@ namespace QuantLib {
         Handle<YieldTermStructure> discountHandle_;
         RelinkableHandle<YieldTermStructure> discountRelinkableHandle_;
     };
+
 
     //! Rate helper for bootstrapping over BMA swap rates
     class BMASwapRateHelper : public RelativeDateRateHelper {
@@ -325,6 +355,93 @@ namespace QuantLib {
         RelinkableHandle<YieldTermStructure> termStructureHandle_;
     };
 
+
+    //! Rate helper for bootstrapping over Fx Swap rates
+    /*! The forward is given by `fwdFx = spotFx + fwdPoint`.
+
+        `isFxBaseCurrencyCollateralCurrency` indicates if the base
+        currency of the FX currency pair is the one used as collateral.
+
+        `calendar` is usually the joint calendar of the two currencies
+        in the pair.
+
+        `tradingCalendar` can be used when the cross pairs don't
+        include the currency of the business center (usually USD; the
+        corresponding calendar is `UnitedStates`).  If given, it will
+        be used for adjusting the earliest settlement date and for
+        setting the latest date. Due to FX spot market conventions, it
+        is not sufficient to pass a JointCalendar with UnitedStates
+        included as `calendar`; with regard the earliest date, this
+        calendar is only used in case the spot date of the two
+        currencies is not a US business day.
+
+        \warning The ON fx swaps can be achieved by setting
+                 `fixingDays` to 0 and using a tenor of '1d'. The same
+                 tenor should be used for TN swaps, with `fixingDays`
+                 set to 1.  However, handling ON and TN swaps for
+                 cross rates without USD is not trivial and should be
+                 treated with caution. If today is a US holiday, ON
+                 trade is not possible. If tomorrow is a US Holiday,
+                 the ON trade will be at least two business days long
+                 in the other countries and the TN trade will not
+                 exist. In such cases, if this helper is used for
+                 curve construction, probably it is safer not to pass
+                 a trading calendar to the ON and TN helpers and
+                 provide fwdPoints that will yield proper level of
+                 discount factors.
+    */
+    class FxSwapRateHelper : public RelativeDateRateHelper {
+      public:
+        FxSwapRateHelper(const Handle<Quote>& fwdPoint,
+                         const Handle<Quote>& spotFx,
+                         const Period& tenor,
+                         Natural fixingDays,
+                         const Calendar& calendar,
+                         BusinessDayConvention convention,
+                         bool endOfMonth,
+                         bool isFxBaseCurrencyCollateralCurrency,
+                         const Handle<YieldTermStructure>& collateralCurve,
+                         const Calendar& tradingCalendar = Calendar());
+        //! \name RateHelper interface
+        //@{
+        Real impliedQuote() const;
+        void setTermStructure(YieldTermStructure*);
+        //@}
+        //! \name FxSwapRateHelper inspectors
+        //@{
+        Real spot() const { return spot_->value(); }
+        Period tenor() const { return tenor_; }
+        Natural fixingDays() const { return fixingDays_; }
+        Calendar calendar() const { return cal_; }
+        BusinessDayConvention businessDayConvention() const { return conv_; }
+        bool endOfMonth() const { return eom_; }
+        bool isFxBaseCurrencyCollateralCurrency() const {
+                                return isFxBaseCurrencyCollateralCurrency_; }
+        Calendar tradingCalendar() const { return tradingCalendar_; }
+        Calendar adjustmentCalendar() const { return jointCalendar_; }
+        //@}
+        //! \name Visitability
+        //@{
+        void accept(AcyclicVisitor&);
+        //@}
+    private:
+        void initializeDates();
+        Handle<Quote> spot_;
+        Period tenor_;
+        Natural fixingDays_;
+        Calendar cal_;
+        BusinessDayConvention conv_;
+        bool eom_;
+        bool isFxBaseCurrencyCollateralCurrency_;
+
+        RelinkableHandle<YieldTermStructure> termStructureHandle_;
+
+        Handle<YieldTermStructure> collHandle_;
+        RelinkableHandle<YieldTermStructure> collRelinkableHandle_;
+
+        Calendar tradingCalendar_;
+        Calendar jointCalendar_;
+    };
 
     // inline
 
