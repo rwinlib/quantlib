@@ -44,7 +44,7 @@
 #define QL_PACKAGE_NAME "QuantLib"
 
 /* Define to the full name and version of this package. */
-#define QL_PACKAGE_STRING "QuantLib 1.12.1"
+#define QL_PACKAGE_STRING "QuantLib 1.14"
 
 /* Define to the one symbol short name of this package. */
 #define QL_PACKAGE_TARNAME "QuantLib"
@@ -53,7 +53,7 @@
 #define QL_PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define QL_PACKAGE_VERSION "1.12.1"
+#define QL_PACKAGE_VERSION "1.14"
 
 /* Define this if you want to enable the parallel unit test runner. */
 /* #undef QL_ENABLE_PARALLEL_UNIT_TEST_RUNNER */
@@ -107,8 +107,14 @@
    */
 /* #undef QL_USE_INDEXED_COUPON */
 
+/* Define this if you want to use standard smart pointers. */
+/* #undef QL_USE_STD_SHARED_PTR */
+
+/* Define this if you want to replace std::auto_ptr with std::unique_ptr. */
+/* #undef QL_USE_STD_UNIQUE_PTR */
+
 /* Define to 1 if you have the ANSI C header files. */
 #define QL_STDC_HEADERS 1
 
 /* Version number of package */
-#define QL_AC_VERSION "1.12.1"
+#define QL_AC_VERSION "1.14"
