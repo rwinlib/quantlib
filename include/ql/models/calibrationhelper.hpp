@@ -38,6 +38,7 @@ namespace QuantLib {
     //! abstract base class for calibration helpers
     class CalibrationHelperBase {
       public:
+        virtual ~CalibrationHelperBase() {}
         //! returns the error resulting from the model valuation
         virtual Real calibrationError() = 0;
     };
@@ -108,9 +109,8 @@ namespace QuantLib {
         const CalibrationErrorType calibrationErrorType_;
     };
 
-    /*! \deprecated Use BlackCalibrationHelper instead
-
-        Deprecated in version 1.14.
+    /*! \deprecated Use BlackCalibrationHelper instead.
+                    Deprecated in version 1.14.
     */
     QL_DEPRECATED
     typedef BlackCalibrationHelper CalibrationHelper;

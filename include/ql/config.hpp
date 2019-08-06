@@ -44,7 +44,7 @@
 #define QL_PACKAGE_NAME "QuantLib"
 
 /* Define to the full name and version of this package. */
-#define QL_PACKAGE_STRING "QuantLib 1.14"
+#define QL_PACKAGE_STRING "QuantLib 1.16"
 
 /* Define to the one symbol short name of this package. */
 #define QL_PACKAGE_TARNAME "QuantLib"
@@ -53,7 +53,7 @@
 #define QL_PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define QL_PACKAGE_VERSION "1.14"
+#define QL_PACKAGE_VERSION "1.16"
 
 /* Define this if you want to enable the parallel unit test runner. */
 /* #undef QL_ENABLE_PARALLEL_UNIT_TEST_RUNNER */
@@ -91,9 +91,6 @@
 /* Define this if you want to enable high resolution date class. */
 #define QL_HIGH_RESOLUTION_DATE 1
 
-/* Define this if negative yield rates should be allowed. */
-#define QL_NEGATIVE_RATES 1
-
 /* Define this if your compiler does not support Boost::uBLAS. */
 /* #undef QL_NO_UBLAS_SUPPORT */
 
@@ -107,6 +104,9 @@
    */
 /* #undef QL_USE_INDEXED_COUPON */
 
+/* Define this if you want to use std::function and std::bind. */
+/* #undef QL_USE_STD_FUNCTION */
+
 /* Define this if you want to use standard smart pointers. */
 /* #undef QL_USE_STD_SHARED_PTR */
 
@@ -117,4 +117,4 @@
 #define QL_STDC_HEADERS 1
 
 /* Version number of package */
-#define QL_AC_VERSION "1.14"
+#define QL_AC_VERSION "1.16"

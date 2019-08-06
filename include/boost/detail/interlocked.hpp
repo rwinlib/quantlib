@@ -75,9 +75,9 @@ extern "C" long __cdecl InterlockedExchangeAdd( long volatile*, long );
 # define BOOST_INTERLOCKED_EXCHANGE_POINTER(dest,exchange) \
     ((void*)BOOST_INTERLOCKED_EXCHANGE((long*)(dest),(long)(exchange)))
 
-#elif defined( BOOST_MSVC ) || defined( BOOST_INTEL_WIN )
+#elif defined( BOOST_MSVC ) || defined( BOOST_INTEL_WIN ) || defined( __MINGW64_VERSION_MAJOR )
 
-#if defined( BOOST_MSVC ) && BOOST_MSVC >= 1400
+#if ( defined( BOOST_MSVC ) && BOOST_MSVC >= 1400 ) || defined( __MINGW64_VERSION_MAJOR )
 
 #include <intrin.h>
 
