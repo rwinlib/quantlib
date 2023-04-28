@@ -50,7 +50,7 @@ namespace QuantLib {
             stats_type;
         typedef typename MonteCarloModel<MC,RNG,S>::result_type result_type;
 
-        virtual ~McSimulation() {}
+        virtual ~McSimulation() = default;
         //! add samples until the required absolute tolerance is reached
         result_type value(Real tolerance,
                           Size maxSamples = QL_MAX_INTEGER,
@@ -123,7 +123,7 @@ namespace QuantLib {
                        << ") is still above tolerance (" << tolerance << ")");
 
             // conservative estimate of how many samples are needed
-            order = maxError(error*error)/tolerance/tolerance;
+            order = maxError(Real(error*error))/tolerance/tolerance;
             nextBatch =
                 Size(std::max<Real>(static_cast<Real>(sampleNumber)*order*0.8 - static_cast<Real>(sampleNumber),
                                     static_cast<Real>(minSamples)));

@@ -26,13 +26,14 @@
 #ifndef quantlib_longstaff_schwartz_path_pricer_hpp
 #define quantlib_longstaff_schwartz_path_pricer_hpp
 
-#include <ql/termstructures/yieldtermstructure.hpp>
-#include <ql/math/functional.hpp>
+#include <ql/functional.hpp>
 #include <ql/math/generallinearleastsquares.hpp>
 #include <ql/math/statistics/incrementalstatistics.hpp>
-#include <ql/methods/montecarlo/pathpricer.hpp>
 #include <ql/methods/montecarlo/earlyexercisepathpricer.hpp>
-#include <ql/functional.hpp>
+#include <ql/methods/montecarlo/pathpricer.hpp>
+#include <ql/termstructures/yieldtermstructure.hpp>
+#include <utility>
+#include <memory>
 
 namespace QuantLib {
 
@@ -53,12 +54,11 @@ namespace QuantLib {
       public:
         typedef typename EarlyExerciseTraits<PathType>::StateType StateType;
 
-        LongstaffSchwartzPathPricer(
-            const TimeGrid& times,
-            const ext::shared_ptr<EarlyExercisePathPricer<PathType> >& ,
-            const ext::shared_ptr<YieldTermStructure>& termStructure);
+        LongstaffSchwartzPathPricer(const TimeGrid& times,
+                                    ext::shared_ptr<EarlyExercisePathPricer<PathType> >,
+                                    const ext::shared_ptr<YieldTermStructure>& termStructure);
 
-        Real operator()(const PathType& path) const;
+        Real operator()(const PathType& path) const override;
         virtual void calibrate();
 
         Real exerciseProbability() const;
@@ -68,14 +68,14 @@ namespace QuantLib {
                                      const std::vector<StateType> &state,
                                      const std::vector<Real> &price,
                                      const std::vector<Real> &exercise) {}
-        bool  calibrationPhase_;
+        bool calibrationPhase_ = true;
         const ext::shared_ptr<EarlyExercisePathPricer<PathType> >
             pathPricer_;
 
         mutable QuantLib::IncrementalStatistics exerciseProbability_;
 
-        boost::scoped_array<Array> coeff_;
-        boost::scoped_array<DiscountFactor> dF_;
+        std::unique_ptr<Array[]> coeff_;
+        std::unique_ptr<DiscountFactor[]> dF_;
 
         mutable std::vector<PathType> paths_;
         const   std::vector<ext::function<Real(StateType)> > v_;
@@ -83,18 +83,14 @@ namespace QuantLib {
         const Size len_;
     };
 
-    template <class PathType> inline
-    LongstaffSchwartzPathPricer<PathType>::LongstaffSchwartzPathPricer(
+    template <class PathType>
+    inline LongstaffSchwartzPathPricer<PathType>::LongstaffSchwartzPathPricer(
         const TimeGrid& times,
-        const ext::shared_ptr<EarlyExercisePathPricer<PathType> >&
-            pathPricer,
+        ext::shared_ptr<EarlyExercisePathPricer<PathType> > pathPricer,
         const ext::shared_ptr<YieldTermStructure>& termStructure)
-    : calibrationPhase_(true),
-      pathPricer_(pathPricer),
-      coeff_     (new Array[times.size()-2]),
-      dF_        (new DiscountFactor[times.size()-1]),
-      v_         (pathPricer_->basisSystem()),
-      len_       (times.size()) {
+    : pathPricer_(std::move(pathPricer)), coeff_(new Array[times.size() - 2]),
+      dF_(new DiscountFactor[times.size() - 1]), v_(pathPricer_->basisSystem()),
+      len_(times.size()) {
 
         for (Size i=0; i<times.size()-1; ++i) {
             dF_[i] =   termStructure->discount(times[i+1])

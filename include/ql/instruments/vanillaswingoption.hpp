@@ -36,8 +36,8 @@ namespace QuantLib {
     */
     class SwingExercise : public BermudanExercise {
       public:
-        SwingExercise(const std::vector<Date>& dates,
-                      const std::vector<Size>& seconds = std::vector<Size>());
+        explicit SwingExercise(const std::vector<Date>& dates,
+                               const std::vector<Size>& seconds = std::vector<Size>());
         SwingExercise(const Date& from, const Date& to, Size stepSizeSecs);
 
         const std::vector<Size>& seconds() const;
@@ -54,9 +54,9 @@ namespace QuantLib {
         VanillaForwardPayoff(Option::Type type, Real strike)
           : StrikedTypePayoff(type, strike) {}
 
-        std::string name() const { return "ForwardTypePayoff";}
-        Real operator()(Real price) const;
-        virtual void accept(AcyclicVisitor&);
+        std::string name() const override { return "ForwardTypePayoff"; }
+        Real operator()(Real price) const override;
+        void accept(AcyclicVisitor&) override;
     };
 
     //! base option class
@@ -70,18 +70,18 @@ namespace QuantLib {
           minExerciseRights_(minExerciseRights),
           maxExerciseRights_(maxExerciseRights) {}
 
-        bool isExpired() const;
-        void setupArguments(PricingEngine::arguments*) const;
-        
-      private:
-        const Size minExerciseRights_, maxExerciseRights_;
+          bool isExpired() const override;
+          void setupArguments(PricingEngine::arguments*) const override;
+
+        private:
+          const Size minExerciseRights_, maxExerciseRights_;
     };
 
     class VanillaSwingOption::arguments 
         : public virtual PricingEngine::arguments {
       public:
-        arguments() {}
-        void validate() const;
+        arguments() = default;
+        void validate() const override;
 
         Size minExerciseRights, maxExerciseRights;
         ext::shared_ptr<StrikedTypePayoff> payoff;

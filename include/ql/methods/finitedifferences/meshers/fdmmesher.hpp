@@ -27,6 +27,7 @@
 
 #include <ql/math/array.hpp>
 #include <ql/shared_ptr.hpp>
+#include <utility>
 #include <vector>
 
 namespace QuantLib {
@@ -35,9 +36,9 @@ namespace QuantLib {
 
     class FdmMesher {
       public:
-        explicit FdmMesher(const ext::shared_ptr<FdmLinearOpLayout>& layout)
-        : layout_(layout) {}
-        virtual ~FdmMesher() {}
+        explicit FdmMesher(ext::shared_ptr<FdmLinearOpLayout> layout)
+        : layout_(std::move(layout)) {}
+        virtual ~FdmMesher() = default;
 
         virtual Real dplus(const FdmLinearOpIterator& iter,
                            Size direction)  const = 0;
@@ -45,7 +46,7 @@ namespace QuantLib {
                             Size direction) const = 0;
         virtual Real location(const FdmLinearOpIterator& iter ,
                               Size direction) const = 0;
-        virtual Disposable<Array> locations(Size direction) const = 0;
+        virtual Array locations(Size direction) const = 0;
 
         const ext::shared_ptr<FdmLinearOpLayout>& layout() const {
             return layout_;

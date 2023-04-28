@@ -40,22 +40,20 @@ namespace QuantLib {
     class RangeAccrualFloatersCoupon: public FloatingRateCoupon {
 
       public:
-
-          RangeAccrualFloatersCoupon(
-                const Date& paymentDate,
-                Real nominal,
-                const ext::shared_ptr<IborIndex>& index,
-                const Date& startDate,
-                const Date& endDate,
-                Natural fixingDays,
-                const DayCounter& dayCounter,
-                Real gearing,
-                Rate spread,
-                const Date& refPeriodStart,
-                const Date& refPeriodEnd,
-                const ext::shared_ptr<Schedule>&  observationsSchedule,
-                Real lowerTrigger,
-                Real upperTrigger);
+        RangeAccrualFloatersCoupon(const Date& paymentDate,
+                                   Real nominal,
+                                   const ext::shared_ptr<IborIndex>& index,
+                                   const Date& startDate,
+                                   const Date& endDate,
+                                   Natural fixingDays,
+                                   const DayCounter& dayCounter,
+                                   Real gearing,
+                                   Rate spread,
+                                   const Date& refPeriodStart,
+                                   const Date& refPeriodEnd,
+                                   ext::shared_ptr<Schedule> observationsSchedule,
+                                   Real lowerTrigger,
+                                   Real upperTrigger);
 
         Real startTime() const {return startTime_; }
         Real endTime() const {return endTime_; }
@@ -68,15 +66,13 @@ namespace QuantLib {
         const std::vector<Real>& observationTimes() const {
             return observationTimes_;
         }
-        const ext::shared_ptr<Schedule> observationsSchedule() const {
-            return observationsSchedule_;
-        }
+        ext::shared_ptr<Schedule> observationsSchedule() const { return observationsSchedule_; }
 
         Real priceWithoutOptionality(
                        const Handle<YieldTermStructure>& discountCurve) const;
         //! \name Visitability
         //@{
-        virtual void accept(AcyclicVisitor&);
+        void accept(AcyclicVisitor&) override;
         //@}
       private:
 
@@ -96,12 +92,12 @@ namespace QuantLib {
       public:
         //! \name Observer interface
         //@{
-        virtual Rate swapletRate() const;
-        virtual Real capletPrice(Rate effectiveCap) const;
-        virtual Rate capletRate(Rate effectiveCap) const;
-        virtual Real floorletPrice(Rate effectiveFloor) const;
-        virtual Rate floorletRate(Rate effectiveFloor) const;
-        void initialize(const FloatingRateCoupon& coupon);
+        Rate swapletRate() const override;
+        Real capletPrice(Rate effectiveCap) const override;
+        Rate capletRate(Rate effectiveCap) const override;
+        Real floorletPrice(Rate effectiveFloor) const override;
+        Rate floorletRate(Rate effectiveFloor) const override;
+        void initialize(const FloatingRateCoupon& coupon) override;
         //@}
 
     protected:
@@ -125,16 +121,15 @@ namespace QuantLib {
     class RangeAccrualPricerByBgm : public RangeAccrualPricer {
 
      public:
-        RangeAccrualPricerByBgm(
-            Real correlation,
-            const ext::shared_ptr<SmileSection>& smilesOnExpiry,
-            const ext::shared_ptr<SmileSection>& smilesOnPayment,
-            bool withSmile,
-            bool byCallSpread);
-        //! \name Observer interface
-        //@{
-        virtual Real swapletPrice() const;
-        //@}
+       RangeAccrualPricerByBgm(Real correlation,
+                               ext::shared_ptr<SmileSection> smilesOnExpiry,
+                               ext::shared_ptr<SmileSection> smilesOnPayment,
+                               bool withSmile,
+                               bool byCallSpread);
+       //! \name Observer interface
+       //@{
+       Real swapletPrice() const override;
+       //@}
 
      protected:
 
@@ -194,15 +189,14 @@ namespace QuantLib {
 
         ext::shared_ptr<SmileSection> smilesOnExpiry_;
         ext::shared_ptr<SmileSection> smilesOnPayment_;
-        Real eps_;
+        Real eps_ = 1.0e-8;
     };
 
 
     //! helper class building a sequence of range-accrual floating-rate coupons
     class RangeAccrualLeg {
       public:
-        RangeAccrualLeg(const Schedule& schedule,
-                        const ext::shared_ptr<IborIndex>& index);
+        RangeAccrualLeg(Schedule schedule, ext::shared_ptr<IborIndex> index);
         RangeAccrualLeg& withNotionals(Real notional);
         RangeAccrualLeg& withNotionals(const std::vector<Real>& notionals);
         RangeAccrualLeg& withPaymentDayCounter(const DayCounter&);
@@ -225,13 +219,13 @@ namespace QuantLib {
         ext::shared_ptr<IborIndex> index_;
         std::vector<Real> notionals_;
         DayCounter paymentDayCounter_;
-        BusinessDayConvention paymentAdjustment_;
+        BusinessDayConvention paymentAdjustment_ = Following;
         std::vector<Natural> fixingDays_;
         std::vector<Real> gearings_;
         std::vector<Spread> spreads_;
         std::vector<Rate> lowerTriggers_, upperTriggers_;
         Period observationTenor_;
-        BusinessDayConvention observationConvention_;
+        BusinessDayConvention observationConvention_ = ModifiedFollowing;
     };
 
 }

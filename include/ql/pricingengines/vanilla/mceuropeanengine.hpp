@@ -62,15 +62,14 @@ namespace QuantLib {
              Size maxSamples,
              BigNatural seed);
       protected:
-        ext::shared_ptr<path_pricer_type> pathPricer() const;
+        ext::shared_ptr<path_pricer_type> pathPricer() const override;
     };
 
     //! Monte Carlo European engine factory
     template <class RNG = PseudoRandom, class S = Statistics>
     class MakeMCEuropeanEngine {
       public:
-        MakeMCEuropeanEngine(
-                    const ext::shared_ptr<GeneralizedBlackScholesProcess>&);
+        MakeMCEuropeanEngine(ext::shared_ptr<GeneralizedBlackScholesProcess>);
         // named parameters
         MakeMCEuropeanEngine& withSteps(Size steps);
         MakeMCEuropeanEngine& withStepsPerYear(Size steps);
@@ -84,11 +83,11 @@ namespace QuantLib {
         operator ext::shared_ptr<PricingEngine>() const;
       private:
         ext::shared_ptr<GeneralizedBlackScholesProcess> process_;
-        bool antithetic_;
+        bool antithetic_ = false;
         Size steps_, stepsPerYear_, samples_, maxSamples_;
         Real tolerance_;
-        bool brownianBridge_;
-        BigNatural seed_;
+        bool brownianBridge_ = false;
+        BigNatural seed_ = 0;
     };
 
     class EuropeanPathPricer : public PathPricer<Path> {
@@ -96,7 +95,8 @@ namespace QuantLib {
         EuropeanPathPricer(Option::Type type,
                            Real strike,
                            DiscountFactor discount);
-        Real operator()(const Path& path) const;
+        Real operator()(const Path& path) const override;
+
       private:
         PlainVanillaPayoff payoff_;
         DiscountFactor discount_;
@@ -154,12 +154,10 @@ namespace QuantLib {
 
 
     template <class RNG, class S>
-    inline MakeMCEuropeanEngine<RNG,S>::MakeMCEuropeanEngine(
-             const ext::shared_ptr<GeneralizedBlackScholesProcess>& process)
-    : process_(process), antithetic_(false),
-      steps_(Null<Size>()), stepsPerYear_(Null<Size>()),
-      samples_(Null<Size>()), maxSamples_(Null<Size>()),
-      tolerance_(Null<Real>()), brownianBridge_(false), seed_(0) {}
+    inline MakeMCEuropeanEngine<RNG, S>::MakeMCEuropeanEngine(
+        ext::shared_ptr<GeneralizedBlackScholesProcess> process)
+    : process_(std::move(process)), steps_(Null<Size>()), stepsPerYear_(Null<Size>()),
+      samples_(Null<Size>()), maxSamples_(Null<Size>()), tolerance_(Null<Real>()) {}
 
     template <class RNG, class S>
     inline MakeMCEuropeanEngine<RNG,S>&

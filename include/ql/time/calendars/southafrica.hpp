@@ -50,14 +50,17 @@ namespace QuantLib {
         <li>Election Days</li>
         </ul>
 
+        Note that there are some one-off holidays not listed above.
+        See the implementation for the complete list.
+
         \ingroup calendars
     */
     class SouthAfrica : public Calendar {
       private:
         class Impl : public Calendar::WesternImpl {
           public:
-            std::string name() const { return "South Africa"; }
-            bool isBusinessDay(const Date&) const;
+            std::string name() const override { return "South Africa"; }
+            bool isBusinessDay(const Date&) const override;
         };
       public:
         SouthAfrica();

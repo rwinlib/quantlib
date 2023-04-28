@@ -46,30 +46,25 @@ namespace QuantLib {
 
     class FFTEngine :
         public VanillaOption::engine {
-    public:
-        FFTEngine(
-            const ext::shared_ptr<StochasticProcess1D>&process, Real logStrikeSpacing);
-        void calculate() const;
-        void update();
+      public:
+        FFTEngine(ext::shared_ptr<StochasticProcess1D> process, Real logStrikeSpacing);
+        void calculate() const override;
+        void update() override;
 
         void precalculate(const std::vector<ext::shared_ptr<Instrument> >& optionList);
-        #if defined(QL_USE_STD_UNIQUE_PTR)
         virtual std::unique_ptr<FFTEngine> clone() const = 0;
-        #else
-        virtual std::auto_ptr<FFTEngine> clone() const = 0;
-        #endif
-    protected:
+      protected:
         virtual void precalculateExpiry(Date d) = 0;
         virtual std::complex<Real> complexFourierTransform(std::complex<Real> u) const = 0;
         virtual Real discountFactor(Date d) const = 0;
         virtual Real dividendYield(Date d) const = 0;
-        void calculateUncached(ext::shared_ptr<StrikedTypePayoff> payoff,
-            ext::shared_ptr<Exercise> exercise) const;
+        void calculateUncached(const ext::shared_ptr<StrikedTypePayoff>& payoff,
+                               const ext::shared_ptr<Exercise>& exercise) const;
 
         ext::shared_ptr<StochasticProcess1D> process_;
         Real lambda_;   // Log strike spacing
 
-    private:
+      private:
         typedef std::map<ext::shared_ptr<StrikedTypePayoff>, Real> PayoffResultMap;
         typedef std::map<Date, PayoffResultMap> ResultMap;
         ResultMap resultMap_;

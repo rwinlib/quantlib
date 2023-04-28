@@ -26,6 +26,7 @@
 
 #include <ql/pricingengines/vanilla/mcvanillaengine.hpp>
 #include <ql/processes/gjrgarchprocess.hpp>
+#include <utility>
 
 namespace QuantLib {
 
@@ -50,14 +51,14 @@ namespace QuantLib {
                                Size maxSamples,
                                BigNatural seed);
       protected:
-        ext::shared_ptr<path_pricer_type> pathPricer() const;
+        ext::shared_ptr<path_pricer_type> pathPricer() const override;
     };
 
     //! Monte Carlo GJR-GARCH European engine factory
     template <class RNG = PseudoRandom, class S = Statistics>
     class MakeMCEuropeanGJRGARCHEngine {
       public:
-        MakeMCEuropeanGJRGARCHEngine(const ext::shared_ptr<GJRGARCHProcess>&);
+        MakeMCEuropeanGJRGARCHEngine(ext::shared_ptr<GJRGARCHProcess>);
         // named parameters
         MakeMCEuropeanGJRGARCHEngine& withSteps(Size steps);
         MakeMCEuropeanGJRGARCHEngine& withStepsPerYear(Size steps);
@@ -70,10 +71,10 @@ namespace QuantLib {
         operator ext::shared_ptr<PricingEngine>() const;
       private:
         ext::shared_ptr<GJRGARCHProcess> process_;
-        bool antithetic_;
+        bool antithetic_ = false;
         Size steps_, stepsPerYear_, samples_, maxSamples_;
         Real tolerance_;
-        BigNatural seed_;
+        BigNatural seed_ = 0;
     };
 
 
@@ -82,7 +83,8 @@ namespace QuantLib {
         EuropeanGJRGARCHPathPricer(Option::Type type,
                                  Real strike,
                                  DiscountFactor discount);
-        Real operator()(const MultiPath& Multipath) const;
+        Real operator()(const MultiPath& Multipath) const override;
+
       private:
         PlainVanillaPayoff payoff_;
         DiscountFactor discount_;
@@ -127,14 +129,11 @@ namespace QuantLib {
     }
 
 
-
     template <class RNG, class S>
-    inline MakeMCEuropeanGJRGARCHEngine<RNG,S>::MakeMCEuropeanGJRGARCHEngine(
-                              const ext::shared_ptr<GJRGARCHProcess>& process)
-    : process_(process), antithetic_(false),
-      steps_(Null<Size>()), stepsPerYear_(Null<Size>()),
-      samples_(Null<Size>()), maxSamples_(Null<Size>()),
-      tolerance_(Null<Real>()), seed_(0) {}
+    inline MakeMCEuropeanGJRGARCHEngine<RNG, S>::MakeMCEuropeanGJRGARCHEngine(
+        ext::shared_ptr<GJRGARCHProcess> process)
+    : process_(std::move(process)), steps_(Null<Size>()), stepsPerYear_(Null<Size>()),
+      samples_(Null<Size>()), maxSamples_(Null<Size>()), tolerance_(Null<Real>()) {}
 
     template <class RNG, class S>
     inline MakeMCEuropeanGJRGARCHEngine<RNG,S>&

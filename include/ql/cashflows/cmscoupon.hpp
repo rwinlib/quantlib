@@ -49,7 +49,8 @@ namespace QuantLib {
                   const Date& refPeriodStart = Date(),
                   const Date& refPeriodEnd = Date(),
                   const DayCounter& dayCounter = DayCounter(),
-                  bool isInArrears = false);
+                  bool isInArrears = false,
+                  const Date& exCouponDate = Date());
         //! \name Inspectors
         //@{
         const ext::shared_ptr<SwapIndex>& swapIndex() const {
@@ -58,7 +59,7 @@ namespace QuantLib {
         //@}
         //! \name Visitability
         //@{
-        virtual void accept(AcyclicVisitor&);
+        void accept(AcyclicVisitor&) override;
         //@}
       private:
         ext::shared_ptr<SwapIndex> swapIndex_;
@@ -68,8 +69,7 @@ namespace QuantLib {
     //! helper class building a sequence of capped/floored cms-rate coupons
     class CmsLeg {
       public:
-        CmsLeg(const Schedule& schedule,
-               const ext::shared_ptr<SwapIndex>& swapIndex);
+        CmsLeg(Schedule schedule, ext::shared_ptr<SwapIndex> swapIndex);
         CmsLeg& withNotionals(Real notional);
         CmsLeg& withNotionals(const std::vector<Real>& notionals);
         CmsLeg& withPaymentDayCounter(const DayCounter&);
@@ -86,18 +86,26 @@ namespace QuantLib {
         CmsLeg& withFloors(const std::vector<Rate>& floors);
         CmsLeg& inArrears(bool flag = true);
         CmsLeg& withZeroPayments(bool flag = true);
+        CmsLeg& withExCouponPeriod(const Period&,
+                                   const Calendar&,
+                                   BusinessDayConvention,
+                                   bool endOfMonth);
         operator Leg() const;
       private:
         Schedule schedule_;
         ext::shared_ptr<SwapIndex> swapIndex_;
         std::vector<Real> notionals_;
         DayCounter paymentDayCounter_;
-        BusinessDayConvention paymentAdjustment_;
+        BusinessDayConvention paymentAdjustment_ = Following;
         std::vector<Natural> fixingDays_;
         std::vector<Real> gearings_;
         std::vector<Spread> spreads_;
         std::vector<Rate> caps_, floors_;
-        bool inArrears_, zeroPayments_;
+        bool inArrears_ = false, zeroPayments_ = false;
+        Period exCouponPeriod_;
+        Calendar exCouponCalendar_;
+        BusinessDayConvention exCouponAdjustment_ = Following;
+        bool exCouponEndOfMonth_ = false;
     };
 
 }

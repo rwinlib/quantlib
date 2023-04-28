@@ -17,75 +17,10 @@
  FOR A PARTICULAR PURPOSE.  See the license for more details.
 */
 
-/*! \file initializers.hpp
-    \brief array and matrix initializers
-*/
-
 #ifndef quantlib_initializers_hpp
 #define quantlib_initializers_hpp
 
-#include <ql/math/array.hpp>
-#include <ql/math/matrix.hpp>
-
-namespace QuantLib {
-
-namespace initializers {
-
-class ArrayProxy {
-public:
-    ArrayProxy& operator,(const Real x) {
-        QL_REQUIRE(a_.size() > idx_,
-                   "ArrayProxy: too many initializers, array has size "
-                       << a_.size());
-        a_[idx_++] = x;
-        return *this;
-    }
-
-private:
-    ArrayProxy(Array& a, const Real x) : a_(a) {
-        QL_REQUIRE(a_.size() > 0, "ArrayProxy: array has size 0");
-        a_[0] = x;
-        idx_ = 1;
-    }
-    friend ArrayProxy operator<<(Array&, const Real);
-    Size idx_;
-    Array& a_;
-};
-
-class MatrixProxy {
-public:
-    MatrixProxy& operator,(const Real x) {
-        QL_REQUIRE(m_.rows() * m_.columns() > idx_,
-                   "MatrixProxy: too many initializers, matrix has size "
-                       << m_.rows() << "x" << m_.columns());
-        *(m_.begin() + idx_++) = x;
-        return *this;
-    }
-
-private:
-    MatrixProxy(Matrix& m, const Real x) : m_(m) {
-        QL_REQUIRE(m_.rows() * m_.columns() > 0,
-                   "MatrixProxy: matrix has size 0");
-        *m_.begin() = x;
-        idx_ = 1;
-    }
-    friend MatrixProxy operator<<(Matrix&, const Real);
-    Size idx_;
-    Matrix& m_;
-};
-
-inline ArrayProxy operator<<(Array& a, const Real x) {
-    return ArrayProxy(a, x);
-}
-
-inline MatrixProxy operator<<(Matrix& m, const Real x) {
-    return MatrixProxy(m, x);
-}
-
-} // namespace initializers
-
-using initializers::operator<<;
-
-} // namespace QuantLib
+// Deprecated in version 1.27
+#pragma message("Warning: this file is empty and will disappear in a future release; do not include it.")
 
 #endif

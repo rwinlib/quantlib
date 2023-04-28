@@ -57,7 +57,7 @@ namespace QuantLib {
         //! abstract base class for interpolation implementations
         class Impl {
           public:
-            virtual ~Impl() {}
+            virtual ~Impl() = default;
             virtual void update() = 0;
             virtual Real xMin() const = 0;
             virtual Real xMax() const = 0;
@@ -71,8 +71,18 @@ namespace QuantLib {
         };
         ext::shared_ptr<Impl> impl_;
       public:
+        /*! \deprecated Use `auto` or `decltype` instead.
+                        Deprecated in version 1.29.
+        */
+        QL_DEPRECATED
         typedef Real argument_type;
+
+        /*! \deprecated Use `auto` or `decltype` instead.
+                        Deprecated in version 1.29.
+        */
+        QL_DEPRECATED
         typedef Real result_type;
+
         //! basic template implementation
         template <class I1, class I2>
         class templateImpl : public Impl {
@@ -85,26 +95,21 @@ namespace QuantLib {
                            requiredPoints <<
                            " required, " << static_cast<int>(xEnd_-xBegin_)<< " provided");
             }
-            Real xMin() const {
-                return *xBegin_;
-            }
-            Real xMax() const {
-                return *(xEnd_-1);
-            }
-            std::vector<Real> xValues() const {
-                return std::vector<Real>(xBegin_,xEnd_);
-            }
-            std::vector<Real> yValues() const {
+            Real xMin() const override { return *xBegin_; }
+            Real xMax() const override { return *(xEnd_ - 1); }
+            std::vector<Real> xValues() const override { return std::vector<Real>(xBegin_, xEnd_); }
+            std::vector<Real> yValues() const override {
                 return std::vector<Real>(yBegin_,yBegin_+(xEnd_-xBegin_));
             }
-            bool isInRange(Real x) const {
-                #if defined(QL_EXTRA_SAFETY_CHECKS)
+            bool isInRange(Real x) const override {
+#if defined(QL_EXTRA_SAFETY_CHECKS)
                 for (I1 i=xBegin_, j=xBegin_+1; j!=xEnd_; ++i, ++j)
                     QL_REQUIRE(*j > *i, "unsorted x values");
                 #endif
                 Real x1 = xMin(), x2 = xMax();
                 return (x >= x1 && x <= x2) || close(x,x1) || close(x,x2);
             }
+
           protected:
             Size locate(Real x) const {
                 #if defined(QL_EXTRA_SAFETY_CHECKS)
@@ -121,9 +126,9 @@ namespace QuantLib {
             I1 xBegin_, xEnd_;
             I2 yBegin_;
         };
-      public:
-        Interpolation() {}
-        virtual ~Interpolation() {}
+
+        Interpolation() = default;
+        ~Interpolation() override = default;
         bool empty() const { return !impl_; }
         Real operator()(Real x, bool allowExtrapolation = false) const {
             checkRange(x,allowExtrapolation);

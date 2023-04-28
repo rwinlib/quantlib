@@ -27,9 +27,10 @@
 #include <ql/math/interpolation.hpp>
 #include <ql/models/shortrate/onefactormodels/gaussian1dmodel.hpp>
 #include <ql/processes/mfstateprocess.hpp>
+#include <ql/termstructures/volatility/optionlet/optionletvolatilitystructure.hpp>
 #include <ql/termstructures/volatility/smilesection.hpp>
 #include <ql/termstructures/volatility/swaption/swaptionvolstructure.hpp>
-#include <ql/termstructures/volatility/optionlet/optionletvolatilitystructure.hpp>
+#include <utility>
 
 namespace QuantLib {
 
@@ -101,17 +102,14 @@ namespace QuantLib {
 
         class CustomSmileSection : public SmileSection {
         public:
-            virtual Real
-            inverseDigitalCall(const Real price,
-                               const Real discount = 1.0) const = 0;
+          virtual Real inverseDigitalCall(Real price, Real discount = 1.0) const = 0;
         };
 
         class CustomSmileFactory {
         public:
-            virtual ~CustomSmileFactory() {}
-            virtual ext::shared_ptr<CustomSmileSection>
-            smileSection(const ext::shared_ptr<SmileSection>& source,
-                         const Real atm) const = 0;
+          virtual ~CustomSmileFactory() = default;
+          virtual ext::shared_ptr<CustomSmileSection>
+          smileSection(const ext::shared_ptr<SmileSection>& source, Real atm) const = 0;
         };
 
         struct ModelSettings {
@@ -131,26 +129,25 @@ namespace QuantLib {
                 CustomSmile = 1 << 9
             };
 
-            ModelSettings()
-                : yGridPoints_(64), yStdDevs_(7.0), gaussHermitePoints_(32),
-                  digitalGap_(1E-5), marketRateAccuracy_(1E-7),
-                  lowerRateBound_(0.0), upperRateBound_(2.0),
-                  adjustments_(KahaleSmile | SmileExponentialExtrapolation),
-                  smileMoneynessCheckpoints_(std::vector<Real>()) {}
+            ModelSettings() : adjustments_(KahaleSmile | SmileExponentialExtrapolation) {}
 
-            ModelSettings(Size yGridPoints, Real yStdDevs, Size gaussHermitePoints,
-                          Real digitalGap, Real marketRateAccuracy,
-                          Real lowerRateBound, Real upperRateBound,
+            ModelSettings(Size yGridPoints,
+                          Real yStdDevs,
+                          Size gaussHermitePoints,
+                          Real digitalGap,
+                          Real marketRateAccuracy,
+                          Real lowerRateBound,
+                          Real upperRateBound,
                           int adjustments,
-                          const std::vector<Real>& smileMoneyCheckpoints = std::vector<Real>(),
-                          const ext::shared_ptr<CustomSmileFactory> customSmileFactory =
-                                                       ext::shared_ptr<CustomSmileFactory>())
-                : yGridPoints_(yGridPoints), yStdDevs_(yStdDevs),
-                  gaussHermitePoints_(gaussHermitePoints), digitalGap_(digitalGap),
-                  marketRateAccuracy_(marketRateAccuracy), lowerRateBound_(lowerRateBound),
-                  upperRateBound_(upperRateBound), adjustments_(adjustments),
-                  smileMoneynessCheckpoints_(smileMoneyCheckpoints),
-                  customSmileFactory_(customSmileFactory) {}
+                          std::vector<Real> smileMoneyCheckpoints = std::vector<Real>(),
+                          ext::shared_ptr<CustomSmileFactory> customSmileFactory =
+                              ext::shared_ptr<CustomSmileFactory>())
+            : yGridPoints_(yGridPoints), yStdDevs_(yStdDevs),
+              gaussHermitePoints_(gaussHermitePoints), digitalGap_(digitalGap),
+              marketRateAccuracy_(marketRateAccuracy), lowerRateBound_(lowerRateBound),
+              upperRateBound_(upperRateBound), adjustments_(adjustments),
+              smileMoneynessCheckpoints_(std::move(smileMoneyCheckpoints)),
+              customSmileFactory_(std::move(customSmileFactory)) {}
 
             void validate() {
 
@@ -250,11 +247,11 @@ namespace QuantLib {
                 return *this;
             }
 
-            Size yGridPoints_;
-            Real yStdDevs_;
-            Size gaussHermitePoints_;
-            Real digitalGap_, marketRateAccuracy_;
-            Real lowerRateBound_, upperRateBound_;
+            Size yGridPoints_ = 64;
+            Real yStdDevs_ = 7.0;
+            Size gaussHermitePoints_ = 32;
+            Real digitalGap_ = 1E-5, marketRateAccuracy_ = 1E-7;
+            Real lowerRateBound_ = 0.0, upperRateBound_ = 2.0;
             int adjustments_;
             std::vector<Real> smileMoneynessCheckpoints_;
             ext::shared_ptr<CustomSmileFactory> customSmileFactory_;
@@ -305,27 +302,25 @@ namespace QuantLib {
         };
 
         // Constructor for a swaption smile calibrated model
-        MarkovFunctional(const Handle<YieldTermStructure> &termStructure,
-                         const Real reversion,
-                         const std::vector<Date> &volstepdates,
-                         const std::vector<Real> &volatilities,
-                         const Handle<SwaptionVolatilityStructure> &swaptionVol,
-                         const std::vector<Date> &swaptionExpiries,
-                         const std::vector<Period> &swaptionTenors,
-                         const ext::shared_ptr<SwapIndex> &swapIndexBase,
-                         const MarkovFunctional::ModelSettings &modelSettings =
-                             ModelSettings());
+        MarkovFunctional(const Handle<YieldTermStructure>& termStructure,
+                         Real reversion,
+                         std::vector<Date> volstepdates,
+                         std::vector<Real> volatilities,
+                         const Handle<SwaptionVolatilityStructure>& swaptionVol,
+                         const std::vector<Date>& swaptionExpiries,
+                         const std::vector<Period>& swaptionTenors,
+                         const ext::shared_ptr<SwapIndex>& swapIndexBase,
+                         MarkovFunctional::ModelSettings modelSettings = ModelSettings());
 
         // Constructor for a caplet smile calibrated model
-        MarkovFunctional(const Handle<YieldTermStructure> &termStructure,
-                         const Real reversion,
-                         const std::vector<Date> &volstepdates,
-                         const std::vector<Real> &volatilities,
-                         const Handle<OptionletVolatilityStructure> &capletVol,
-                         const std::vector<Date> &capletExpiries,
-                         const ext::shared_ptr<IborIndex> &iborIndex,
-                         const MarkovFunctional::ModelSettings &modelSettings =
-                             ModelSettings());
+        MarkovFunctional(const Handle<YieldTermStructure>& termStructure,
+                         Real reversion,
+                         std::vector<Date> volstepdates,
+                         std::vector<Real> volatilities,
+                         const Handle<OptionletVolatilityStructure>& capletVol,
+                         const std::vector<Date>& capletExpiries,
+                         ext::shared_ptr<IborIndex> iborIndex,
+                         MarkovFunctional::ModelSettings modelSettings = ModelSettings());
 
         const ModelSettings &modelSettings() const { return modelSettings_; }
         const ModelOutputs &modelOutputs() const;
@@ -335,25 +330,36 @@ namespace QuantLib {
 
         const Array &volatility() const { return sigma_.params(); }
 
-        void calibrate(
-            const std::vector<ext::shared_ptr<BlackCalibrationHelper> > &helper,
-            OptimizationMethod &method, const EndCriteria &endCriteria,
-            const Constraint &constraint = Constraint(),
-            const std::vector<Real> &weights = std::vector<Real>(),
-            const std::vector<bool> &fixParameters = std::vector<bool>()) {
+        void calibrate(const std::vector<ext::shared_ptr<CalibrationHelper> >& helpers,
+                       OptimizationMethod& method,
+                       const EndCriteria& endCriteria,
+                       const Constraint& constraint = Constraint(),
+                       const std::vector<Real>& weights = std::vector<Real>(),
+                       const std::vector<bool>& fixParameters = std::vector<bool>()) override {
 
-            CalibratedModel::calibrate(helper, method, endCriteria, constraint,
-                                       weights, fixParameters.size() == 0
-                                                    ? FixedFirstVolatility()
-                                                    : fixParameters);
+            CalibratedModel::calibrate(helpers, method, endCriteria, constraint, weights,
+                                       fixParameters.empty() ? FixedFirstVolatility() :
+                                                               fixParameters);
         }
 
-        void update() {
-            LazyObject::update();
+        void calibrate(const std::vector<ext::shared_ptr<BlackCalibrationHelper> >& helpers,
+                       OptimizationMethod& method,
+                       const EndCriteria& endCriteria,
+                       const Constraint& constraint = Constraint(),
+                       const std::vector<Real>& weights = std::vector<Real>(),
+                       const std::vector<bool>& fixParameters = std::vector<bool>()) {
+
+            std::vector<ext::shared_ptr<CalibrationHelper> > tmp(helpers.size());
+            for (Size i=0; i<helpers.size(); ++i)
+                tmp[i] = ext::static_pointer_cast<CalibrationHelper>(helpers[i]);
+
+            calibrate(tmp, method, endCriteria, constraint, weights, fixParameters);
         }
+
+        void update() override { LazyObject::update(); }
 
         // returns the indices of the af region from the last smile update
-        const std::vector<std::pair<Size,Size> > arbitrageIndices() const {
+        std::vector<std::pair<Size, Size> > arbitrageIndices() const {
             calculate();
             return arbitrageIndices_;
         }
@@ -366,14 +372,12 @@ namespace QuantLib {
         }
 
       protected:
+        Real numeraireImpl(Time t, Real y, const Handle<YieldTermStructure>& yts) const override;
 
-        Real numeraireImpl(const Time t, const Real y,
-                           const Handle<YieldTermStructure> &yts) const;
+        Real
+        zerobondImpl(Time T, Time t, Real y, const Handle<YieldTermStructure>& yts) const override;
 
-        Real zerobondImpl(const Time T, const Time t, const Real y,
-                          const Handle<YieldTermStructure> &yts) const;
-
-        void generateArguments() {
+        void generateArguments() override {
             // if calculate triggers performCalculations, updateNumeraireTabulations
             // is called twice. If we can not check the lazy object status this seem
             // hard to avoid though.
@@ -382,14 +386,14 @@ namespace QuantLib {
             notifyObservers();
         }
 
-        void performCalculations() const {
+        void performCalculations() const override {
             Gaussian1dModel::performCalculations();
             updateTimes();
             updateSmiles();
             updateNumeraireTabulation();
         }
 
-        Disposable<std::vector<bool> > FixedFirstVolatility() const {
+        std::vector<bool> FixedFirstVolatility() const {
             std::vector<bool> c(volatilities_.size(), false);
             c[0] = true;
             return c;
@@ -409,24 +413,21 @@ namespace QuantLib {
                                           const Period &tenor);
         void makeCapletCalibrationPoint(const Date &expiry);
 
-        Real marketSwapRate(const Date &expiry, const CalibrationPoint &p,
-                            const Real digitalPrice,
-                            const Real guess = 0.03,
-                            const Real shift = 0.0) const;
-        Real marketDigitalPrice(const Date &expiry,
-                                const CalibrationPoint &p,
-                                const Option::Type &type,
-                                const Real strike) const;
+        Real marketSwapRate(const Date& expiry,
+                            const CalibrationPoint& p,
+                            Real digitalPrice,
+                            Real guess = 0.03,
+                            Real shift = 0.0) const;
+        Real marketDigitalPrice(const Date& expiry,
+                                const CalibrationPoint& p,
+                                const Option::Type& type,
+                                Real strike) const;
 
-        const Disposable<Array>
-        deflatedZerobondArray(const Time T, const Time t, const Array &y) const;
-        const Disposable<Array> numeraireArray(const Time t,
-                                               const Array &y) const;
-        const Disposable<Array> zerobondArray(const Time T, const Time t,
-                                              const Array &y) const;
+        Array deflatedZerobondArray(Time T, Time t, const Array& y) const;
+        Array numeraireArray(Time t, const Array& y) const;
+        Array zerobondArray(Time T, Time t, const Array& y) const;
 
-        Real deflatedZerobond(const Time T, const Time t = 0.0,
-                              const Real y = 0.0) const;
+        Real deflatedZerobond(Time T, Time t = 0.0, Real y = 0.0) const;
 
         // the following methods (tagged internal) are indended only to produce
         // the volatility diagnostics in the model outputs
@@ -435,42 +436,47 @@ namespace QuantLib {
         // for this purpose
 
         Real forwardRateInternal(
-            const Date &fixing, const Date &referenceDate = Null<Date>(),
-            const Real y = 0.0, const bool zeroFixingDays = false,
-            ext::shared_ptr<IborIndex> iborIdx =
-                ext::shared_ptr<IborIndex>()) const;
-
-        Real swapRateInternal(const Date &fixing, const Period &tenor,
-                              const Date &referenceDate = Null<Date>(),
-                              const Real y = 0.0,
-                              const bool zeroFixingDays = false,
-                              ext::shared_ptr<SwapIndex> swapIdx =
-                                        ext::shared_ptr<SwapIndex>()) const;
+            const Date& fixing,
+            const Date& referenceDate = Null<Date>(),
+            Real y = 0.0,
+            bool zeroFixingDays = false,
+            ext::shared_ptr<IborIndex> iborIdx = ext::shared_ptr<IborIndex>()) const;
 
         Real
-        swapAnnuityInternal(const Date &fixing, const Period &tenor,
-                            const Date &referenceDate = Null<Date>(),
-                            const Real y = 0.0,
-                            const bool zeroFixingDays = false,
-                            ext::shared_ptr<SwapIndex> swapIdx =
-                                ext::shared_ptr<SwapIndex>()) const;
+        swapRateInternal(const Date& fixing,
+                         const Period& tenor,
+                         const Date& referenceDate = Null<Date>(),
+                         Real y = 0.0,
+                         bool zeroFixingDays = false,
+                         ext::shared_ptr<SwapIndex> swapIdx = ext::shared_ptr<SwapIndex>()) const;
+
+        Real swapAnnuityInternal(
+            const Date& fixing,
+            const Period& tenor,
+            const Date& referenceDate = Null<Date>(),
+            Real y = 0.0,
+            bool zeroFixingDays = false,
+            ext::shared_ptr<SwapIndex> swapIdx = ext::shared_ptr<SwapIndex>()) const;
 
         Real capletPriceInternal(
-            const Option::Type &type, const Date &expiry, const Rate strike,
-            const Date &referenceDate = Null<Date>(), const Real y = 0.0,
-            const bool zeroFixingDays = false,
-            ext::shared_ptr<IborIndex> iborIdx =
-                ext::shared_ptr<IborIndex>()) const;
+            const Option::Type& type,
+            const Date& expiry,
+            Rate strike,
+            const Date& referenceDate = Null<Date>(),
+            Real y = 0.0,
+            bool zeroFixingDays = false,
+            ext::shared_ptr<IborIndex> iborIdx = ext::shared_ptr<IborIndex>()) const;
 
         Real swaptionPriceInternal(
-            const Option::Type &type, const Date &expiry, const Period &tenor,
-            const Rate strike, const Date &referenceDate = Null<Date>(),
-            const Real y = 0.0, const bool zeroFixingDays = false,
-            ext::shared_ptr<SwapIndex> swapIdx =
-                ext::shared_ptr<SwapIndex>()) const;
+            const Option::Type& type,
+            const Date& expiry,
+            const Period& tenor,
+            Rate strike,
+            const Date& referenceDate = Null<Date>(),
+            Real y = 0.0,
+            bool zeroFixingDays = false,
+            const ext::shared_ptr<SwapIndex>& swapIdx = ext::shared_ptr<SwapIndex>()) const;
 
-        class ZeroHelper;
-        friend class ZeroHelper;
         class ZeroHelper {
           public:
             ZeroHelper(const MarkovFunctional *model, const Date &expiry,

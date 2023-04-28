@@ -68,7 +68,7 @@ namespace QuantLib {
 
         // Constructor using Laguerre integration
         // and Gatheral's version of complex log.
-        AnalyticPTDHestonEngine(
+        explicit AnalyticPTDHestonEngine(
             const ext::shared_ptr<PiecewiseTimeDependentHestonModel>& model,
             Size integrationOrder = 144);
 
@@ -80,7 +80,7 @@ namespace QuantLib {
             Real andersenPiterbargEpsilon = 1e-8);
 
 
-        void calculate() const;
+        void calculate() const override;
         Size numberOfEvaluations() const;
 
         // normalized characteristic function

@@ -33,10 +33,11 @@ namespace QuantLib {
     class FdmStepConditionComposite;
 
     struct FdmSchemeDesc {
-        enum FdmSchemeType { HundsdorferType, DouglasType, 
+        enum FdmSchemeType { HundsdorferType, DouglasType,
                              CraigSneydType, ModifiedCraigSneydType, 
                              ImplicitEulerType, ExplicitEulerType,
-                             MethodOfLinesType, TrBDF2Type };
+                             MethodOfLinesType, TrBDF2Type,
+                             CrankNicolsonType };
 
         FdmSchemeDesc(FdmSchemeType type, Real theta, Real mu);
 
@@ -45,6 +46,7 @@ namespace QuantLib {
 
         // some default scheme descriptions
         static FdmSchemeDesc Douglas(); //same as Crank-Nicolson in 1 dimension
+        static FdmSchemeDesc CrankNicolson();
         static FdmSchemeDesc ImplicitEuler();
         static FdmSchemeDesc ExplicitEuler();
         static FdmSchemeDesc CraigSneyd();
@@ -59,12 +61,11 @@ namespace QuantLib {
     class FdmBackwardSolver {
       public:
         typedef FdmLinearOp::array_type array_type;
-        
-        FdmBackwardSolver(
-          const ext::shared_ptr<FdmLinearOpComposite>& map,
-          const FdmBoundaryConditionSet& bcSet,
-          const ext::shared_ptr<FdmStepConditionComposite> condition,
-          const FdmSchemeDesc& schemeDesc);
+
+        FdmBackwardSolver(ext::shared_ptr<FdmLinearOpComposite> map,
+                          FdmBoundaryConditionSet bcSet,
+                          const ext::shared_ptr<FdmStepConditionComposite>& condition,
+                          const FdmSchemeDesc& schemeDesc);
 
         void rollback(array_type& a, 
                       Time from, Time to,

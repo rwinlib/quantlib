@@ -44,18 +44,20 @@ namespace QuantLib {
         typedef traits::condition_type condition_type;
 
         // constructors
-        ImplicitEulerScheme(
-            const ext::shared_ptr<FdmLinearOpComposite>& map,
-            const bc_set& bcSet = bc_set(),
-            Real relTol = 1e-8,
-            SolverType solverType = BiCGstab);
+        explicit ImplicitEulerScheme(ext::shared_ptr<FdmLinearOpComposite> map,
+                                     const bc_set& bcSet = bc_set(),
+                                     Real relTol = 1e-8,
+                                     SolverType solverType = BiCGstab);
 
         void step(array_type& a, Time t);
         void setStep(Time dt);
 
         Size numberOfIterations() const;
       protected:
-        Disposable<Array> apply(const Array& r) const;   
+        friend class CrankNicolsonScheme;
+        void step(array_type& a, Time t, Real theta);
+
+        Array apply(const Array& r, Real theta) const;
           
         Time dt_;
         ext::shared_ptr<Size> iterations_;

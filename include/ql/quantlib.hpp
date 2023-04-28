@@ -7,7 +7,6 @@
 #  include <ql/auto_link.hpp>
 #endif
 
-#include <ql/auto_ptr.hpp>
 #include <ql/cashflow.hpp>
 #include <ql/compounding.hpp>
 #include <ql/currency.hpp>
@@ -38,6 +37,7 @@
 #include <ql/termstructure.hpp>
 #include <ql/timegrid.hpp>
 #include <ql/timeseries.hpp>
+#include <ql/tuple.hpp>
 #include <ql/types.hpp>
 #include <ql/volatilitymodel.hpp>
 

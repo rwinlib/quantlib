@@ -40,14 +40,11 @@ namespace QuantLib {
     /*! \todo add tests */
     class CashFlows {
       private:
-        CashFlows();
-        CashFlows(const CashFlows&);
-
         class IrrFinder {
           public:
             IrrFinder(const Leg& leg,
                       Real npv,
-                      const DayCounter& dayCounter,
+                      DayCounter dayCounter,
                       Compounding comp,
                       Frequency freq,
                       bool includeSettlementDateFlows,
@@ -68,6 +65,9 @@ namespace QuantLib {
             Date settlementDate_, npvDate_;
         };
       public:
+        CashFlows() = delete;
+        CashFlows(const CashFlows&) = delete;
+
         //! \name Date functions
         //@{
         static Date startDate(const Leg& leg);
@@ -183,11 +183,21 @@ namespace QuantLib {
                         Date settlementDate = Date(),
                         Date npvDate = Date());
 
-        //@{
         //! NPV and BPS of the cash flows.
         /*! The NPV and BPS of the cash flows calculated
             together for performance reason
         */
+        static std::pair<Real, Real> npvbps(const Leg& leg,
+                                            const YieldTermStructure& discountCurve,
+                                            bool includeSettlementDateFlows,
+                                            Date settlementDate = Date(),
+                                            Date npvDate = Date());
+
+        //! NPV and BPS of the cash flows.
+        /*! \deprecated Use the overload returning a pair of Reals.
+                        Deprecated in version 1.29.
+        */
+        QL_DEPRECATED
         static void npvbps(const Leg& leg,
                            const YieldTermStructure& discountCurve,
                            bool includeSettlementDateFlows,
@@ -257,7 +267,7 @@ namespace QuantLib {
                         Date npvDate = Date());
         //! Implied internal rate of return.
         /*! The function verifies
-            the theoretical existance of an IRR and numerically
+            the theoretical existence of an IRR and numerically
             establishes the IRR to the desired precision.
         */
         static Rate yield(const Leg& leg,

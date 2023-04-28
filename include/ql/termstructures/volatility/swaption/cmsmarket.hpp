@@ -41,16 +41,15 @@ namespace QuantLib {
     //! set of CMS quotes
     class CmsMarket: public LazyObject{
       public:
-        CmsMarket(
-            const std::vector<Period>& swapLengths,
-            const std::vector<ext::shared_ptr<SwapIndex> >& swapIndexes,
-            const ext::shared_ptr<IborIndex>& iborIndex,
-            const std::vector<std::vector<Handle<Quote> > >& bidAskSpreads,
-            const std::vector<ext::shared_ptr<CmsCouponPricer> >& pricers,
-            const Handle<YieldTermStructure>& discountingTS);
+        CmsMarket(std::vector<Period> swapLengths,
+                  std::vector<ext::shared_ptr<SwapIndex> > swapIndexes,
+                  ext::shared_ptr<IborIndex> iborIndex,
+                  const std::vector<std::vector<Handle<Quote> > >& bidAskSpreads,
+                  const std::vector<ext::shared_ptr<CmsCouponPricer> >& pricers,
+                  Handle<YieldTermStructure> discountingTS);
         //! \name LazyObject interface
         //@{
-        void update() { LazyObject::update();}
+        void update() override { LazyObject::update(); }
         //@}
         // called during calibration procedure
         void reprice(const Handle<SwaptionVolatilityStructure>& volStructure,
@@ -66,16 +65,14 @@ namespace QuantLib {
         Real weightedSpreadError(const Matrix& weights);
         Real weightedSpotNpvError(const Matrix& weights);
         Real weightedFwdNpvError(const Matrix& weights);
-        Disposable<Array> weightedSpreadErrors(const Matrix& weights);
-        Disposable<Array> weightedSpotNpvErrors(const Matrix& weights);
-        Disposable<Array> weightedFwdNpvErrors(const Matrix& weights);
+        Array weightedSpreadErrors(const Matrix& weights);
+        Array weightedSpotNpvErrors(const Matrix& weights);
+        Array weightedFwdNpvErrors(const Matrix& weights);
 
       private:
-        void performCalculations() const;
-        Real weightedMean(const Matrix& var,
-                          const Matrix& weights);
-        Disposable<Array> weightedMeans(const Matrix& var,
-                                        const Matrix& weights);
+        void performCalculations() const override;
+        Real weightedMean(const Matrix& var, const Matrix& weights) const;
+        Array weightedMeans(const Matrix& var, const Matrix& weights) const;
 
         std::vector<Period> swapLengths_;
         std::vector<ext::shared_ptr<SwapIndex> > swapIndexes_;

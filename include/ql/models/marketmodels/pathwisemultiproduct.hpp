@@ -54,10 +54,10 @@ namespace QuantLib {
     {
     public:
         struct CashFlow {
-            Size timeIndex;
+            Size timeIndex = 0;
             std::vector<Real > amount;
         };
-        virtual ~MarketModelPathwiseMultiProduct() {}
+        virtual ~MarketModelPathwiseMultiProduct() = default;
 
         virtual std::vector<Size> suggestedNumeraires() const = 0;
         virtual const EvolutionDescription& evolution() const = 0;
@@ -75,11 +75,7 @@ namespace QuantLib {
             std::vector<Size>& numberCashFlowsThisStep,
             std::vector<std::vector<MarketModelPathwiseMultiProduct::CashFlow> >& cashFlowsGenerated) = 0;
         //! returns a newly-allocated copy of itself
-        #if defined(QL_USE_STD_UNIQUE_PTR)
         virtual std::unique_ptr<MarketModelPathwiseMultiProduct> clone() const = 0;
-        #else
-        virtual std::auto_ptr<MarketModelPathwiseMultiProduct> clone() const = 0;
-        #endif
     };
 
 }

@@ -26,6 +26,8 @@
 
 #include <ql/math/interpolation.hpp>
 #include <ql/time/date.hpp>
+#include <ql/time/daycounter.hpp>
+#include <utility>
 #include <vector>
 
 namespace QuantLib {
@@ -40,10 +42,10 @@ namespace QuantLib {
       protected:
         //! \name Building
         //@{
-        InterpolatedCurve(const std::vector<Time>& times,
-                          const std::vector<Real>& data,
+        InterpolatedCurve(std::vector<Time> times,
+                          std::vector<Real> data,
                           const Interpolator& i = Interpolator())
-        : times_(times), data_(data), interpolator_(i) {}
+        : times_(std::move(times)), data_(std::move(data)), interpolator_(i) {}
 
         InterpolatedCurve(const std::vector<Time>& times,
                           const Interpolator& i = Interpolator())
@@ -73,11 +75,31 @@ namespace QuantLib {
         }
         //@}
 
+        //! \name Utilities
+        //@{
+        void setupTimes(const std::vector<Date>& dates,
+                        Date referenceDate,
+                        const DayCounter& dayCounter) {
+            times_.resize(dates.size());
+            times_[0] = dayCounter.yearFraction(referenceDate, dates[0]);
+            for (Size i = 1; i < dates.size(); i++) {
+                QL_REQUIRE(dates[i] > dates[i-1],
+                           "dates not sorted: " << dates[i] << " passed after " << dates[i-1]);
+
+                times_[i] = dayCounter.yearFraction(referenceDate, dates[i]);
+                QL_REQUIRE(!close(this->times_[i], this->times_[i-1]),
+                           "two passed dates (" << dates[i-1] << " and " << dates[i]
+                           << ") correspond to the same time "
+                           << "under this curve's day count convention (" << dayCounter << ")");
+            }
+        }
+
         void setupInterpolation() {
             interpolation_ = interpolator_.interpolate(times_.begin(),
                                                        times_.end(),
                                                        data_.begin());
         }
+        //@}
 
         mutable std::vector<Time> times_;
         mutable std::vector<Real> data_;

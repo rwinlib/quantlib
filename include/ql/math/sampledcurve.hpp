@@ -87,8 +87,8 @@ namespace QuantLib {
             setGrid(BoundedLogGrid(min, max, size()-1));
         }
         void regridLogGrid(Real min, Real max) {
-            regrid(BoundedLogGrid(min, max, size()-1),
-                   static_cast<Real(*)(Real)>(std::log));
+            regrid(BoundedLogGrid(min, max, size() - 1),
+                   [](Real x) -> Real { return std::log(x); });
         }
         void shiftGrid(Real s) {
             grid_ += s;
@@ -122,9 +122,8 @@ namespace QuantLib {
             Array newValues = new_grid;
             std::transform(newValues.begin(), newValues.end(),
                            newValues.begin(), func);
-            for (Array::iterator j = newValues.begin();
-                 j != newValues.end(); ++j) {
-                *j = priceSpline(*j, true);
+            for (Real& newValue : newValues) {
+                newValue = priceSpline(newValue, true);
             }
             values_.swap(newValues);
             grid_ = new_grid;

@@ -34,17 +34,8 @@ http://arxiv.org/pdf/1003.1464.pdf
 #include <ql/math/randomnumbers/mt19937uniformrng.hpp>
 #include <ql/math/randomnumbers/seedgenerator.hpp>
 
-#include <boost/random/mersenne_twister.hpp>
-typedef boost::mt19937 base_generator_type;
-
-#include <boost/random/normal_distribution.hpp>
-typedef boost::random::normal_distribution<QuantLib::Real> BoostNormalDistribution;
-#include <boost/random/uniform_int_distribution.hpp>
-typedef boost::random::uniform_int_distribution<QuantLib::Size> uniform_integer;
-#include <boost/random/variate_generator.hpp>
-typedef boost::variate_generator<base_generator_type, uniform_integer> variate_integer;
-
 #include <cmath>
+#include <random>
 
 namespace QuantLib {
 
@@ -90,15 +81,15 @@ namespace QuantLib {
       public:
         class RandomWalk;
         class Intensity;
-        friend class RandomWalk;
-        friend class Intensity;
-        FireflyAlgorithm(Size M, 
-            ext::shared_ptr<Intensity> intensity,
-            ext::shared_ptr<RandomWalk> randomWalk,
-            Size Mde = 0, Real mutationFactor = 1.0,
-            Real crossoverFactor = 0.5, unsigned long seed = SeedGenerator::instance().get());
+        FireflyAlgorithm(Size M,
+                         ext::shared_ptr<Intensity> intensity,
+                         ext::shared_ptr<RandomWalk> randomWalk,
+                         Size Mde = 0,
+                         Real mutationFactor = 1.0,
+                         Real crossoverFactor = 0.5,
+                         unsigned long seed = SeedGenerator::instance().get());
         void startState(Problem &P, const EndCriteria &endCriteria);
-        EndCriteria::Type minimize(Problem &P, const EndCriteria &endCriteria);
+        EndCriteria::Type minimize(Problem& P, const EndCriteria& endCriteria) override;
 
       protected:
         std::vector<Array> x_, xI_, xRW_; 
@@ -108,7 +99,8 @@ namespace QuantLib {
         Size M_, N_, Mde_, Mfa_;
         ext::shared_ptr<Intensity> intensity_;
         ext::shared_ptr<RandomWalk> randomWalk_;
-        variate_integer drawIndex_;
+        std::mt19937 generator_;
+        std::uniform_int_distribution<QuantLib::Size> distribution_;
         MersenneTwisterUniformRng rng_;
     };
 
@@ -118,9 +110,9 @@ namespace QuantLib {
     class FireflyAlgorithm::Intensity {
         friend class FireflyAlgorithm;
     public:
-        virtual ~Intensity() {}
-        //! find brightest firefly for each firefly
-        void findBrightest();
+      virtual ~Intensity() = default;
+      //! find brightest firefly for each firefly
+      void findBrightest();
     protected:
         Size Mfa_, N_;
         const std::vector<Array> *x_;
@@ -128,7 +120,7 @@ namespace QuantLib {
         std::vector<Array> *xI_;
 
         virtual Real intensityImpl(Real valueX, Real valueY, Real distance) = 0;
-        inline Real distance(const Array& x, const Array& y) {
+        inline Real distance(const Array& x, const Array& y) const {
             Real d = 0.0;
             for (Size i = 0; i < N_; i++) {
                 Real diff = x[i] - y[i];
@@ -136,6 +128,7 @@ namespace QuantLib {
             }
             return d;
         }
+
     private:
         void init(FireflyAlgorithm *fa) {
             x_ = &fa->x_;
@@ -154,9 +147,9 @@ namespace QuantLib {
           ExponentialIntensity(Real beta0, Real betaMin, Real gamma)
               : beta0_(beta0), betaMin_(betaMin), gamma_(gamma) {}
       protected:
-          Real intensityImpl(Real valueX, Real valueY, Real d){
-              return (beta0_ - betaMin_)*std::exp(-gamma_*d) + betaMin_;
-          }
+        Real intensityImpl(Real valueX, Real valueY, Real d) override {
+            return (beta0_ - betaMin_) * std::exp(-gamma_ * d) + betaMin_;
+        }
           Real beta0_, betaMin_, gamma_;
     };
 
@@ -168,9 +161,9 @@ namespace QuantLib {
         InverseLawSquareIntensity(Real beta0, Real betaMin)
             : beta0_(beta0), betaMin_(betaMin) {}
     protected:
-        Real intensityImpl(Real valueX, Real valueY, Real d) {
-            return (beta0_ - betaMin_)/(d+ QL_EPSILON) + betaMin_;
-        }
+      Real intensityImpl(Real valueX, Real valueY, Real d) override {
+          return (beta0_ - betaMin_) / (d + QL_EPSILON) + betaMin_;
+      }
         Real beta0_, betaMin_;
     };
 
@@ -180,12 +173,12 @@ namespace QuantLib {
     class FireflyAlgorithm::RandomWalk {
         friend class FireflyAlgorithm;
     public:
-        virtual ~RandomWalk() {}
-        //! perform random walk
-        void walk() {
-            for (Size i = 0; i < Mfa_; i++) {
-                walkImpl((*xRW_)[(*values_)[i].second]);
-            }
+      virtual ~RandomWalk() = default;
+      //! perform random walk
+      void walk() {
+          for (Size i = 0; i < Mfa_; i++) {
+              walkImpl((*xRW_)[(*values_)[i].second]);
+          }
         }
     protected:
         Size Mfa_, N_;
@@ -208,51 +201,50 @@ namespace QuantLib {
 
     //! Distribution Walk
     /*  Random walk given by distribution template parameter. The
-        distribution must be compatible with boost's Random 
-        variate_generator
+        distribution must be compatible with std::mt19937.
     */
     template <class Distribution>
     class DistributionRandomWalk : public FireflyAlgorithm::RandomWalk {
-    public:
-        typedef IsotropicRandomWalk<Distribution, base_generator_type> WalkRandom;
-        DistributionRandomWalk(Distribution dist, 
-		                       Real delta = 0.9, 
-                               unsigned long seed = SeedGenerator::instance().get()) :
-            walkRandom_(base_generator_type(seed), dist, 1, Array(1, 1.0), seed),
-            delta_(delta) {}
-    protected:
-        void walkImpl(Array & xRW) {
+      public:
+        explicit DistributionRandomWalk(Distribution dist, 
+                                        Real delta = 0.9, 
+                                        unsigned long seed = SeedGenerator::instance().get())
+        : walkRandom_(std::mt19937(seed), std::move(dist), 1, Array(1, 1.0), seed),
+          delta_(delta) {}
+      protected:
+        void walkImpl(Array& xRW) override {
             walkRandom_.nextReal(&xRW[0]);
             xRW *= delta_;
         }
-        void init(FireflyAlgorithm *fa) {
+        void init(FireflyAlgorithm* fa) override {
             FireflyAlgorithm::RandomWalk::init(fa);
             walkRandom_.setDimension(N_, *lX_, *uX_);
         }
-        WalkRandom walkRandom_;
+        IsotropicRandomWalk<Distribution, std::mt19937> walkRandom_;
         Real delta_;
     };
     
     //! Gaussian Walk
     /*  Gaussian random walk
     */
-    class GaussianWalk : public DistributionRandomWalk<BoostNormalDistribution> {
-    public:
-        GaussianWalk(Real sigma, 
-		             Real delta = 0.9, 
-                     unsigned long seed = SeedGenerator::instance().get())
-        : DistributionRandomWalk<BoostNormalDistribution>(
-                           BoostNormalDistribution(0.0, sigma), delta, seed){}
+    class GaussianWalk : public DistributionRandomWalk<std::normal_distribution<QuantLib::Real>> {
+      public:
+        explicit GaussianWalk(Real sigma, 
+                              Real delta = 0.9, 
+                              unsigned long seed = SeedGenerator::instance().get())
+        : DistributionRandomWalk<std::normal_distribution<QuantLib::Real>>(
+                           std::normal_distribution<QuantLib::Real>(0.0, sigma), delta, seed){}
     };
 
     //! Levy Flight Random Walk
     /*  Levy flight random walk
     */
     class LevyFlightWalk : public DistributionRandomWalk<LevyFlightDistribution> {
-    public:
-        LevyFlightWalk(Real alpha, 
-		               Real xm = 0.5, 
-                       Real delta = 0.9, unsigned long seed = SeedGenerator::instance().get())
+      public:
+        explicit LevyFlightWalk(Real alpha, 
+                                Real xm = 0.5, 
+                                Real delta = 0.9,
+                                unsigned long seed = SeedGenerator::instance().get())
         : DistributionRandomWalk<LevyFlightDistribution>(
                             LevyFlightDistribution(xm, alpha), delta, seed) {}
     };
@@ -262,10 +254,13 @@ namespace QuantLib {
     */
     class DecreasingGaussianWalk : public GaussianWalk {
       public:
-        DecreasingGaussianWalk(Real sigma, Real delta = 0.9, unsigned long seed = SeedGenerator::instance().get()):
-            GaussianWalk(sigma, delta, seed), delta0_(delta){}
+        explicit DecreasingGaussianWalk(
+            Real sigma,
+            Real delta = 0.9,
+            unsigned long seed = SeedGenerator::instance().get())
+        : GaussianWalk(sigma, delta, seed), delta0_(delta) {}
       protected:
-        void walkImpl(Array & xRW) {
+        void walkImpl(Array& xRW) override {
             iteration_++;
             if (iteration_ > Mfa_) {
                 //Every time all the fireflies have been processed
@@ -275,11 +270,12 @@ namespace QuantLib {
             }
             GaussianWalk::walkImpl(xRW);
         }
-        void init(FireflyAlgorithm *fa) {
+        void init(FireflyAlgorithm* fa) override {
             GaussianWalk::init(fa);
             iteration_ = 0;
             delta_ = delta0_;
         }
+
       private:
         Real delta0_;
         Size iteration_;

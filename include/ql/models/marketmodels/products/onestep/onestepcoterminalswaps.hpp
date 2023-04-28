@@ -28,30 +28,25 @@ namespace QuantLib {
     class OneStepCoterminalSwaps : public MultiProductOneStep {
       public:
         OneStepCoterminalSwaps(const std::vector<Time>& rateTimes,
-                           const std::vector<Real>& fixedAccruals,
-                           const std::vector<Real>& floatingAccruals,
-                           const std::vector<Time>& paymentTimes,
-                           double fixedRate);
+                               std::vector<Real> fixedAccruals,
+                               std::vector<Real> floatingAccruals,
+                               const std::vector<Time>& paymentTimes,
+                               Real fixedRate);
         //! \name MarketModelMultiProduct interface
         //@{
-        std::vector<Time> possibleCashFlowTimes() const;
-        Size numberOfProducts() const;
-        Size maxNumberOfCashFlowsPerProductPerStep() const;
-        void reset();
-        bool nextTimeStep(
-                     const CurveState& currentState,
-                     std::vector<Size>& numberCashFlowsThisStep,
-                     std::vector<std::vector<CashFlow> >& cashFlowsGenerated);
-        #if defined(QL_USE_STD_UNIQUE_PTR)
-        std::unique_ptr<MarketModelMultiProduct> clone() const;
-        #else
-        std::auto_ptr<MarketModelMultiProduct> clone() const;
-        #endif
+        std::vector<Time> possibleCashFlowTimes() const override;
+        Size numberOfProducts() const override;
+        Size maxNumberOfCashFlowsPerProductPerStep() const override;
+        void reset() override;
+        bool nextTimeStep(const CurveState& currentState,
+                          std::vector<Size>& numberCashFlowsThisStep,
+                          std::vector<std::vector<CashFlow> >& cashFlowsGenerated) override;
+        std::unique_ptr<MarketModelMultiProduct> clone() const override;
         //@}
       private:
         std::vector<Real> fixedAccruals_, floatingAccruals_;
         std::vector<Time> paymentTimes_;
-        double fixedRate_;
+        Real fixedRate_;
         Size lastIndex_;
     };
 

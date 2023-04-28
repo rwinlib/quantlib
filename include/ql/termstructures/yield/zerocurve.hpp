@@ -48,10 +48,9 @@ namespace QuantLib {
             const std::vector<Rate>& yields,
             const DayCounter& dayCounter,
             const Calendar& calendar = Calendar(),
-            const std::vector<Handle<Quote> >& jumps =
-                                                std::vector<Handle<Quote> >(),
-            const std::vector<Date>& jumpDates = std::vector<Date>(),
-            const Interpolator& interpolator = Interpolator(),
+            const std::vector<Handle<Quote> >& jumps = {},
+            const std::vector<Date>& jumpDates = {},
+            const Interpolator& interpolator = {},
             Compounding compounding = Continuous,
             Frequency frequency = Annual);
         InterpolatedZeroCurve(
@@ -71,7 +70,7 @@ namespace QuantLib {
             Frequency frequency = Annual);
         //! \name TermStructure interface
         //@{
-        Date maxDate() const;
+        Date maxDate() const override;
         //@}
         //! \name other inspectors
         //@{
@@ -81,28 +80,28 @@ namespace QuantLib {
         const std::vector<Rate>& zeroRates() const;
         std::vector<std::pair<Date, Real> > nodes() const;
         //@}
+
       protected:
-        InterpolatedZeroCurve(
+        explicit InterpolatedZeroCurve(
             const DayCounter&,
-            const std::vector<Handle<Quote> >& jumps = std::vector<Handle<Quote> >(),
-            const std::vector<Date>& jumpDates = std::vector<Date>(),
-            const Interpolator& interpolator = Interpolator());
+            const Interpolator& interpolator = {});
         InterpolatedZeroCurve(
             const Date& referenceDate,
             const DayCounter&,
-            const std::vector<Handle<Quote> >& jumps = std::vector<Handle<Quote> >(),
-            const std::vector<Date>& jumpDates = std::vector<Date>(),
-            const Interpolator& interpolator = Interpolator());
+            const std::vector<Handle<Quote> >& jumps = {},
+            const std::vector<Date>& jumpDates = {},
+            const Interpolator& interpolator = {});
         InterpolatedZeroCurve(
             Natural settlementDays,
             const Calendar&,
             const DayCounter&,
-            const std::vector<Handle<Quote> >& jumps = std::vector<Handle<Quote> >(),
-            const std::vector<Date>& jumpDates = std::vector<Date>(),
-            const Interpolator& interpolator = Interpolator());
+            const std::vector<Handle<Quote> >& jumps = {},
+            const std::vector<Date>& jumpDates = {},
+            const Interpolator& interpolator = {});
+
         //! \name ZeroYieldStructure implementation
         //@{
-        Rate zeroYieldImpl(Time t) const;
+        Rate zeroYieldImpl(Time t) const override;
         //@}
         mutable std::vector<Date> dates_;
       private:
@@ -173,11 +172,8 @@ namespace QuantLib {
     template <class T>
     InterpolatedZeroCurve<T>::InterpolatedZeroCurve(
                                     const DayCounter& dayCounter,
-                                    const std::vector<Handle<Quote> >& jumps,
-                                    const std::vector<Date>& jumpDates,
                                     const T& interpolator)
-    : ZeroYieldStructure(dayCounter, jumps, jumpDates),
-      InterpolatedCurve<T>(interpolator) {}
+    : ZeroYieldStructure(dayCounter), InterpolatedCurve<T>(interpolator) {}
 
     template <class T>
     InterpolatedZeroCurve<T>::InterpolatedZeroCurve(
@@ -260,38 +256,24 @@ namespace QuantLib {
         QL_REQUIRE(this->data_.size() == dates_.size(),
                    "dates/data count mismatch");
 
-        this->times_.resize(dates_.size());
-        this->times_[0] = 0.0;
+        this->setupTimes(dates_, dates_[0], dayCounter());
+
         if (compounding != Continuous) {
-            // We also have to convert the first rate.
+            // adjusting zero rates to match continuous compounding
+
             // The first time is 0.0, so we can't use it.
             // We fall back to about one day.
             Time dt = 1.0/365;
             InterestRate r(this->data_[0], dayCounter(), compounding, frequency);
             this->data_[0] = r.equivalentRate(Continuous, NoFrequency, dt);
-        }
 
-        for (Size i=1; i<dates_.size(); ++i) {
-            QL_REQUIRE(dates_[i] > dates_[i-1],
-                       "invalid date (" << dates_[i] << ", vs "
-                       << dates_[i-1] << ")");
-            this->times_[i] = dayCounter().yearFraction(dates_[0], dates_[i]);
-            QL_REQUIRE(!close(this->times_[i],this->times_[i-1]),
-                       "two dates correspond to the same time "
-                       "under this curve's day count convention");
-
-            // adjusting zero rates to match continuous compounding
-            if (compounding != Continuous)
-            {
+            for (Size i=1; i<dates_.size(); ++i) {
                 InterestRate r(this->data_[i], dayCounter(), compounding, frequency);
                 this->data_[i] = r.equivalentRate(Continuous, NoFrequency, this->times_[i]);
             }
         }
 
-        this->interpolation_ =
-            this->interpolator_.interpolate(this->times_.begin(),
-                                            this->times_.end(),
-                                            this->data_.begin());
+        this->setupInterpolation();
         this->interpolation_.update();
     }
 

@@ -47,13 +47,12 @@ namespace QuantLib {
 
     class NormalCLVModel : public LazyObject {
       public:
-        NormalCLVModel(
-            const ext::shared_ptr<GeneralizedBlackScholesProcess>& bsProcess,
-            const ext::shared_ptr<OrnsteinUhlenbeckProcess>& ouProcess,
-            const std::vector<Date>& maturityDates,
-            Size lagrangeOrder,
-            Real pMax = Null<Real>(),
-            Real pMin = Null<Real>());
+        NormalCLVModel(const ext::shared_ptr<GeneralizedBlackScholesProcess>& bsProcess,
+                       ext::shared_ptr<OrnsteinUhlenbeckProcess> ouProcess,
+                       const std::vector<Date>& maturityDates,
+                       Size lagrangeOrder,
+                       Real pMax = Null<Real>(),
+                       Real pMin = Null<Real>());
 
         // cumulative distribution function of the BS process
         Real cdf(const Date& d, Real x) const;
@@ -62,16 +61,16 @@ namespace QuantLib {
         Real invCDF(const Date& d, Real q) const;
 
         // collocation points of the Ornstein-Uhlenbeck process
-        Disposable<Array> collocationPointsX(const Date& d) const;
+        Array collocationPointsX(const Date& d) const;
 
         // collocation points for the underlying Y
-        Disposable<Array> collocationPointsY(const Date& d) const;
+        Array collocationPointsY(const Date& d) const;
 
         // CLV mapping function
         ext::function<Real(Time, Real)> g() const;
 
       protected:
-        void performCalculations() const;
+        void performCalculations() const override;
 
       private:
         class MappingFunction {

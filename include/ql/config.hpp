@@ -7,11 +7,11 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define QL_HAVE_INTTYPES_H 1
 
-/* Define to 1 if you have the <memory.h> header file. */
-#define QL_HAVE_MEMORY_H 1
-
 /* Define to 1 if you have the <stdint.h> header file. */
 #define QL_HAVE_STDINT_H 1
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#define QL_HAVE_STDIO_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define QL_HAVE_STDLIB_H 1
@@ -44,7 +44,7 @@
 #define QL_PACKAGE_NAME "QuantLib"
 
 /* Define to the full name and version of this package. */
-#define QL_PACKAGE_STRING "QuantLib 1.16"
+#define QL_PACKAGE_STRING "QuantLib 1.29"
 
 /* Define to the one symbol short name of this package. */
 #define QL_PACKAGE_TARNAME "QuantLib"
@@ -53,16 +53,13 @@
 #define QL_PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define QL_PACKAGE_VERSION "1.16"
+#define QL_PACKAGE_VERSION "1.29"
 
 /* Define this if you want to enable the parallel unit test runner. */
 /* #undef QL_ENABLE_PARALLEL_UNIT_TEST_RUNNER */
 
 /* Define this if you want to enable sessions. */
 /* #undef QL_ENABLE_SESSIONS */
-
-/* Define this if you want thread-safe singleton initialization. */
-/* #undef QL_ENABLE_SINGLETON_THREAD_SAFE_INIT */
 
 /* Define this if you want to enable thread-safe observer pattern. */
 /* #undef QL_ENABLE_THREAD_SAFE_OBSERVER_PATTERN */
@@ -82,20 +79,12 @@
    performance. */
 /* #undef QL_EXTRA_SAFETY_CHECKS */
 
-/* Define this if your compiler defines asinh in <cmath>. */
-#define QL_HAVE_ASINH /**/
-
-/* Define this if your compiler supports the long long type. */
-#define QL_HAVE_LONG_LONG /**/
-
 /* Define this if you want to enable high resolution date class. */
 #define QL_HIGH_RESOLUTION_DATE 1
 
-/* Define this if your compiler does not support Boost::uBLAS. */
-/* #undef QL_NO_UBLAS_SUPPORT */
-
-/* Define if running on a Mac OS X machine. */
-/* #undef QL_PATCH_DARWIN */
+/* Define this if you want to enable the implementation of Null as template
+   functions. */
+/* #undef QL_NULL_AS_FUNCTIONS */
 
 /* Define if running on a Sun Solaris machine. */
 /* #undef QL_PATCH_SOLARIS */
@@ -110,11 +99,13 @@
 /* Define this if you want to use standard smart pointers. */
 /* #undef QL_USE_STD_SHARED_PTR */
 
-/* Define this if you want to replace std::auto_ptr with std::unique_ptr. */
-/* #undef QL_USE_STD_UNIQUE_PTR */
+/* Define this if you want to use std::tuple. */
+/* #undef QL_USE_STD_TUPLE */
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #define QL_STDC_HEADERS 1
 
 /* Version number of package */
-#define QL_AC_VERSION "1.16"
+#define QL_AC_VERSION "1.29"

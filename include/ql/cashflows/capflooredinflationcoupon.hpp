@@ -96,7 +96,7 @@ namespace QuantLib {
         //! \name augmented Coupon interface
         //@{
         //! swap(let) rate
-        Rate rate() const;
+        Rate rate() const override;
         //! cap
         Rate cap() const;
         //! floor
@@ -109,13 +109,16 @@ namespace QuantLib {
 
         //! \name Observer interface
         //@{
-        void update();
+        void update() override;
         //@}
 
         //! \name Visitability
         //@{
-        virtual void accept(AcyclicVisitor& v);
+        void accept(AcyclicVisitor& v) override;
         //@}
+
+        //! this returns the expected rate before cap and floor are applied
+        Rate underlyingRate() const;
 
         bool isCapped() const { return isCapped_; }
         bool isFloored() const { return isFloored_; }

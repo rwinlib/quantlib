@@ -77,10 +77,10 @@ namespace QuantLib {
 
         //! \name VolatilityCompositor interface
         //@{
-        time_series calculate(const time_series& quoteSeries) {
+        time_series calculate(const time_series& quoteSeries) override {
             return calculate(quoteSeries, alpha(), beta(), omega());
         }
-        void calibrate(const time_series& quoteSeries) {
+        void calibrate(const time_series& quoteSeries) override {
             calibrate(quoteSeries.cbegin_values(), quoteSeries.cend_values());
         }
         //@}
@@ -244,7 +244,7 @@ namespace QuantLib {
                 u2 = *begin; u2 *= u2;
                 retval += std::log(sigma2) + u2 / sigma2;
             }
-            return N > 0 ? retval / (2*N) : 0.0;
+            return N > 0 ? Real(retval / (2*N)) : 0.0;
         }
         //@}
       private:

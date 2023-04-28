@@ -30,17 +30,13 @@ namespace QuantLib {
     template <class State>
     class ExerciseStrategy {
       public:
-        virtual ~ExerciseStrategy() {}
+        virtual ~ExerciseStrategy() = default;
         virtual std::vector<Time> exerciseTimes() const = 0;
         virtual std::vector<Time> relevantTimes() const = 0;
         virtual void reset() = 0;
         virtual bool exercise(const State& currentState) const = 0;
         virtual void nextStep(const State& currentState) = 0;
-        #if defined(QL_USE_STD_UNIQUE_PTR)
         virtual std::unique_ptr<ExerciseStrategy<State> > clone() const = 0;
-        #else
-        virtual std::auto_ptr<ExerciseStrategy<State> > clone() const = 0;
-        #endif
     };
 
 }

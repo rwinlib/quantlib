@@ -28,11 +28,12 @@
 #define quantlib_digital_mc_engine_hpp
 
 #include <ql/exercise.hpp>
-#include <ql/termstructures/yieldtermstructure.hpp>
-#include <ql/termstructures/volatility/equityfx/blackvoltermstructure.hpp>
 #include <ql/methods/montecarlo/mctraits.hpp>
 #include <ql/pricingengines/vanilla/mcvanillaengine.hpp>
 #include <ql/processes/blackscholesprocess.hpp>
+#include <ql/termstructures/volatility/equityfx/blackvoltermstructure.hpp>
+#include <ql/termstructures/yieldtermstructure.hpp>
+#include <utility>
 
 namespace QuantLib {
 
@@ -80,15 +81,14 @@ namespace QuantLib {
                     BigNatural seed);
       protected:
         // McSimulation implementation
-        ext::shared_ptr<path_pricer_type> pathPricer() const;
+        ext::shared_ptr<path_pricer_type> pathPricer() const override;
     };
 
     //! Monte Carlo digital engine factory
     template <class RNG = PseudoRandom, class S = Statistics>
     class MakeMCDigitalEngine {
       public:
-        MakeMCDigitalEngine(
-                    const ext::shared_ptr<GeneralizedBlackScholesProcess>&);
+        MakeMCDigitalEngine(ext::shared_ptr<GeneralizedBlackScholesProcess>);
         // named parameters
         MakeMCDigitalEngine& withSteps(Size steps);
         MakeMCDigitalEngine& withStepsPerYear(Size steps);
@@ -102,22 +102,22 @@ namespace QuantLib {
         operator ext::shared_ptr<PricingEngine>() const;
       private:
         ext::shared_ptr<GeneralizedBlackScholesProcess> process_;
-        bool antithetic_;
+        bool antithetic_ = false;
         Size steps_, stepsPerYear_, samples_, maxSamples_;
         Real tolerance_;
-        bool brownianBridge_;
-        BigNatural seed_;
+        bool brownianBridge_ = false;
+        BigNatural seed_ = 0;
     };
 
     class DigitalPathPricer : public PathPricer<Path> {
       public:
-        DigitalPathPricer(
-                    const ext::shared_ptr<CashOrNothingPayoff>& payoff,
-                    const ext::shared_ptr<AmericanExercise>& exercise,
-                    const Handle<YieldTermStructure>& discountTS,
-                    const ext::shared_ptr<StochasticProcess1D>& diffProcess,
-                    const PseudoRandom::ursg_type& sequenceGen);
-        Real operator()(const Path& path) const;
+        DigitalPathPricer(ext::shared_ptr<CashOrNothingPayoff> payoff,
+                          ext::shared_ptr<AmericanExercise> exercise,
+                          Handle<YieldTermStructure> discountTS,
+                          ext::shared_ptr<StochasticProcess1D> diffProcess,
+                          PseudoRandom::ursg_type sequenceGen);
+        Real operator()(const Path& path) const override;
+
       private:
         ext::shared_ptr<CashOrNothingPayoff> payoff_;
         ext::shared_ptr<AmericanExercise> exercise_;
@@ -187,12 +187,10 @@ namespace QuantLib {
 
 
     template <class RNG, class S>
-    inline MakeMCDigitalEngine<RNG,S>::MakeMCDigitalEngine(
-             const ext::shared_ptr<GeneralizedBlackScholesProcess>& process)
-    : process_(process), antithetic_(false),
-      steps_(Null<Size>()), stepsPerYear_(Null<Size>()),
-      samples_(Null<Size>()), maxSamples_(Null<Size>()),
-      tolerance_(Null<Real>()), brownianBridge_(false), seed_(0) {}
+    inline MakeMCDigitalEngine<RNG, S>::MakeMCDigitalEngine(
+        ext::shared_ptr<GeneralizedBlackScholesProcess> process)
+    : process_(std::move(process)), steps_(Null<Size>()), stepsPerYear_(Null<Size>()),
+      samples_(Null<Size>()), maxSamples_(Null<Size>()), tolerance_(Null<Real>()) {}
 
     template <class RNG, class S>
     inline MakeMCDigitalEngine<RNG,S>&

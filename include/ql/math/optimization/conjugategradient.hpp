@@ -52,9 +52,7 @@ namespace QuantLib {
       private:
         //! \name LineSearchBasedMethod interface
         //@{
-        Disposable<Array> getUpdatedDirection(const Problem &P,
-                                              Real gold2,
-                                              const Array& oldGradient);
+        Array getUpdatedDirection(const Problem& P, Real gold2, const Array& oldGradient) override;
         //@}
     };
 

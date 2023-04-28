@@ -36,21 +36,24 @@ namespace QuantLib {
     */
     class MakeCreditDefaultSwap {
       public:
-        MakeCreditDefaultSwap(const Period &tenor, const Real couponRate);
-        MakeCreditDefaultSwap(const Date &termDate, const Real couponRate);
+        MakeCreditDefaultSwap(const Period& tenor, Real couponRate);
+        MakeCreditDefaultSwap(const Date& termDate, Real couponRate);
 
         operator CreditDefaultSwap() const;
         operator ext::shared_ptr<CreditDefaultSwap>() const;
 
-        MakeCreditDefaultSwap &withUpfrontRate(Real);
-        MakeCreditDefaultSwap &withSide(Protection::Side);
-        MakeCreditDefaultSwap &withNominal(Real);
-        MakeCreditDefaultSwap &withCouponTenor(Period);
-        MakeCreditDefaultSwap &withDayCounter(DayCounter &);
-        MakeCreditDefaultSwap &withLastPeriodDayCounter(DayCounter &);
+        MakeCreditDefaultSwap& withUpfrontRate(Real);
+        MakeCreditDefaultSwap& withSide(Protection::Side);
+        MakeCreditDefaultSwap& withNominal(Real);
+        MakeCreditDefaultSwap& withCouponTenor(Period);
+        MakeCreditDefaultSwap& withDayCounter(DayCounter&);
+        MakeCreditDefaultSwap& withLastPeriodDayCounter(DayCounter&);
+        MakeCreditDefaultSwap& withDateGenerationRule(DateGeneration::Rule rule);
+        MakeCreditDefaultSwap& withCashSettlementDays(Natural cashSettlementDays);
 
-        MakeCreditDefaultSwap &
-        withPricingEngine(const ext::shared_ptr<PricingEngine> &);
+        MakeCreditDefaultSwap& withPricingEngine(const ext::shared_ptr<PricingEngine>&);
+
+        MakeCreditDefaultSwap& withTradeDate(const Date& tradeDate);
 
       private:
         Protection::Side side_;
@@ -62,6 +65,9 @@ namespace QuantLib {
         Real upfrontRate_;
         DayCounter dayCounter_;
         DayCounter lastPeriodDayCounter_;
+        DateGeneration::Rule rule_;
+        Natural cashSettlementDays_;
+        Date tradeDate_;
 
         ext::shared_ptr<PricingEngine> engine_;
     };

@@ -53,7 +53,7 @@ namespace QuantLib {
                         const Date& exCouponDate = Date());
         FixedRateCoupon(const Date& paymentDate,
                         Real nominal,
-                        const InterestRate& interestRate,
+                        InterestRate interestRate,
                         const Date& accrualStartDate,
                         const Date& accrualEndDate,
                         const Date& refPeriodStart = Date(),
@@ -62,18 +62,18 @@ namespace QuantLib {
         //@}
         //! \name CashFlow interface
         //@{
-        Real amount() const;
+        Real amount() const override;
         //@}
         //! \name Coupon interface
         //@{
-        Rate rate() const { return rate_; }
+        Rate rate() const override { return rate_; }
         InterestRate interestRate() const { return rate_; }
-        DayCounter dayCounter() const { return rate_.dayCounter(); }
-        Real accruedAmount(const Date&) const;
+        DayCounter dayCounter() const override { return rate_.dayCounter(); }
+        Real accruedAmount(const Date&) const override;
         //@}
         //! \name Visitability
         //@{
-        virtual void accept(AcyclicVisitor&);
+        void accept(AcyclicVisitor&) override;
         //@}
       private:
         InterestRate rate_;
@@ -113,18 +113,17 @@ namespace QuantLib {
         std::vector<InterestRate> couponRates_;
         DayCounter firstPeriodDC_ , lastPeriodDC_;
         Calendar paymentCalendar_;
-        BusinessDayConvention paymentAdjustment_;
-        Natural paymentLag_;
+        BusinessDayConvention paymentAdjustment_ = Following;
+        Natural paymentLag_ = 0;
         Period exCouponPeriod_;
         Calendar exCouponCalendar_;
-        BusinessDayConvention exCouponAdjustment_;
-        bool exCouponEndOfMonth_;
+        BusinessDayConvention exCouponAdjustment_ = Following;
+        bool exCouponEndOfMonth_ = false;
     };
 
     inline void FixedRateCoupon::accept(AcyclicVisitor& v) {
-        Visitor<FixedRateCoupon>* v1 =
-            dynamic_cast<Visitor<FixedRateCoupon>*>(&v);
-        if (v1 != 0)
+        auto* v1 = dynamic_cast<Visitor<FixedRateCoupon>*>(&v);
+        if (v1 != nullptr)
             v1->visit(*this);
         else
             Coupon::accept(v);

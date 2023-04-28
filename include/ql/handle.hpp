@@ -48,10 +48,11 @@ namespace QuantLib {
                         bool registerAsObserver);
             bool empty() const { return !h_; }
             const ext::shared_ptr<T>& currentLink() const { return h_; }
-            void update() { notifyObservers(); }
+            void update() override { notifyObservers(); }
+
           private:
             ext::shared_ptr<T> h_;
-            bool isObserver_;
+            bool isObserver_ = false;
         };
         ext::shared_ptr<Link> link_;
       public:
@@ -72,7 +73,9 @@ namespace QuantLib {
                      destroyed before the pointed object does.
         */
         //@{
-        explicit Handle(const ext::shared_ptr<T>& p = ext::shared_ptr<T>(),
+        Handle()
+        : Handle(ext::shared_ptr<T>()) {}
+        explicit Handle(const ext::shared_ptr<T>& p,
                         bool registerAsObserver = true)
         : link_(new Link(p,registerAsObserver)) {}
         //@}
@@ -86,13 +89,13 @@ namespace QuantLib {
         operator ext::shared_ptr<Observable>() const;
         //! equality test
         template <class U>
-        bool operator==(const Handle<U>& other) { return link_==other.link_; }
+        bool operator==(const Handle<U>& other) const { return link_==other.link_; }
         //! disequality test
         template <class U>
-        bool operator!=(const Handle<U>& other) { return link_!=other.link_; }
+        bool operator!=(const Handle<U>& other) const { return link_!=other.link_; }
         //! strict weak ordering
         template <class U>
-        bool operator<(const Handle<U>& other) { return link_ < other.link_; }
+        bool operator<(const Handle<U>& other) const { return link_ < other.link_; }
     };
 
     //! Relinkable handle to an observable
@@ -122,9 +125,7 @@ namespace QuantLib {
     // inline definitions
 
     template <class T>
-    inline Handle<T>::Link::Link(const ext::shared_ptr<T>& h,
-                                 bool registerAsObserver)
-    : isObserver_(false) {
+    inline Handle<T>::Link::Link(const ext::shared_ptr<T>& h, bool registerAsObserver) {
         linkTo(h,registerAsObserver);
     }
 

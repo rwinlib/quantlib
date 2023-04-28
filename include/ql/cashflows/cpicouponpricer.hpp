@@ -38,15 +38,10 @@ namespace QuantLib {
     */
     class CPICouponPricer : public InflationCouponPricer {
       public:
-        CPICouponPricer();
-        /*! \deprecated Use the constructor also taking an explicit
-                        nominal term structure.
-                        Deprecated in version 1.15.
-        */
-        QL_DEPRECATED
-        explicit CPICouponPricer(const Handle<CPIVolatilitySurface>& capletVol);
-        CPICouponPricer(const Handle<CPIVolatilitySurface>& capletVol,
-                        const Handle<YieldTermStructure>& nominalTermStructure);
+        explicit CPICouponPricer(Handle<YieldTermStructure> nominalTermStructure = Handle<YieldTermStructure>());
+
+        explicit CPICouponPricer(Handle<CPIVolatilitySurface> capletVol,
+                                 Handle<YieldTermStructure> nominalTermStructure = Handle<YieldTermStructure>());
 
         virtual Handle<CPIVolatilitySurface> capletVolatility() const{
             return capletVol_;
@@ -62,17 +57,17 @@ namespace QuantLib {
 
         //! \name InflationCouponPricer interface
         //@{
-        virtual Real swapletPrice() const;
-        virtual Rate swapletRate() const;
-        virtual Real capletPrice(Rate effectiveCap) const;
-        virtual Rate capletRate(Rate effectiveCap) const;
-        virtual Real floorletPrice(Rate effectiveFloor) const;
-        virtual Rate floorletRate(Rate effectiveFloor) const;
-        virtual void initialize(const InflationCoupon&);
+        Real swapletPrice() const override;
+        Rate swapletRate() const override;
+        Real capletPrice(Rate effectiveCap) const override;
+        Rate capletRate(Rate effectiveCap) const override;
+        Real floorletPrice(Rate effectiveFloor) const override;
+        Rate floorletRate(Rate effectiveFloor) const override;
+        void initialize(const InflationCoupon&) override;
         //@}
 
 
-    protected:
+      protected:
         virtual Real optionletPrice(Option::Type optionType,
                                     Real effStrike) const;
 
@@ -97,7 +92,7 @@ namespace QuantLib {
         Spread spread_;
         Real discount_;
     };
-
+    
 }
 
 #endif

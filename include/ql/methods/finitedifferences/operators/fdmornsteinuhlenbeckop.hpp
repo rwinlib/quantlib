@@ -36,40 +36,25 @@ namespace QuantLib {
     class YieldTermStructure;
     class OrnsteinUhlenbeckProcess;
 
-    class FdmOrnsteinUhlenbackOp : public FdmLinearOpComposite {
+    class FdmOrnsteinUhlenbeckOp : public FdmLinearOpComposite {
       public:
-        FdmOrnsteinUhlenbackOp(
-            const ext::shared_ptr<FdmMesher>& mesher,
-            const ext::shared_ptr<OrnsteinUhlenbeckProcess>& p,
-            const ext::shared_ptr<YieldTermStructure>& rTS,
-            Size direction = 0);
+        FdmOrnsteinUhlenbeckOp(const ext::shared_ptr<FdmMesher>& mesher,
+                               ext::shared_ptr<OrnsteinUhlenbeckProcess> p,
+                               ext::shared_ptr<YieldTermStructure> rTS,
+                               Size direction = 0);
 
-        /*! \deprecated use the other constructor.
-                        Deprecated in version 1.16.
-        */
-        QL_DEPRECATED
-        FdmOrnsteinUhlenbackOp(
-            const ext::shared_ptr<FdmMesher>& mesher,
-            const ext::shared_ptr<OrnsteinUhlenbeckProcess>& p,
-            const ext::shared_ptr<YieldTermStructure>& rTS,
-            const FdmBoundaryConditionSet& bcSet,
-            Size direction = 0);
+        Size size() const override;
+        void setTime(Time t1, Time t2) override;
 
-        Size size() const;
-        void setTime(Time t1, Time t2);
+        Array apply(const Array& r) const override;
+        Array apply_mixed(const Array& r) const override;
 
-        Disposable<Array> apply(const Array& r) const;
-        Disposable<Array> apply_mixed(const Array& r) const;
+        Array apply_direction(Size direction, const Array& r) const override;
+        Array solve_splitting(Size direction, const Array& r, Real s) const override;
+        Array preconditioner(const Array& r, Real s) const override;
 
-        Disposable<Array> apply_direction(Size direction,
-                                          const Array& r) const;
-        Disposable<Array> solve_splitting(Size direction,
-                                          const Array& r, Real s) const;
-        Disposable<Array> preconditioner(const Array& r, Real s) const;
+        std::vector<SparseMatrix> toMatrixDecomp() const override;
 
-#if !defined(QL_NO_UBLAS_SUPPORT)
-        Disposable<std::vector<SparseMatrix> > toMatrixDecomp() const;
-#endif
       private:
         const ext::shared_ptr<FdmMesher> mesher_;
         const ext::shared_ptr<OrnsteinUhlenbeckProcess> process_;
@@ -78,5 +63,6 @@ namespace QuantLib {
 
         TripleBandLinearOp m_, mapX_;
     };
+
 }
 #endif

@@ -24,17 +24,16 @@
 #ifndef quantlib_svi_interpolation_hpp
 #define quantlib_svi_interpolation_hpp
 
-#include <ql/math/interpolations/xabrinterpolation.hpp>
 #include <ql/experimental/volatility/svismilesection.hpp>
-
-#include <boost/assign/list_of.hpp>
+#include <ql/math/interpolations/xabrinterpolation.hpp>
+#include <utility>
 
 namespace QuantLib {
 
 namespace detail {
 
 inline void checkSviParameters(const Real a, const Real b, const Real sigma,
-                               const Real rho, const Real m) {
+                               const Real rho, const Real m, const Time tte) {
     QL_REQUIRE(b >= 0.0, "b (" << b << ") must be non negative");
     QL_REQUIRE(std::fabs(rho) < 1.0, "rho (" << rho << ") must be in (-1,1)");
     QL_REQUIRE(sigma > 0.0, "sigma (" << sigma << ") must be positive");
@@ -42,9 +41,9 @@ inline void checkSviParameters(const Real a, const Real b, const Real sigma,
                "a + b sigma sqrt(1-rho^2) (a=" << a << ", b=" << b << ", sigma="
                                                << sigma << ", rho=" << rho
                                                << ") must be non negative");
-    QL_REQUIRE(b * (1.0 + std::fabs(rho)) < 4.0,
-               "b(1+|rho|) must be less than 4");
-    return;
+    QL_REQUIRE(b * (1.0 + std::fabs(rho)) <= 4.0,
+               "b(1+|rho|) must be less than or equal to 4, (b=" << b << ", rho=" << rho << ")");
+
 }
 
 inline Real sviTotalVariance(const Real a, const Real b, const Real sigma,
@@ -163,51 +162,57 @@ class SviInterpolation : public Interpolation {
         impl_ = ext::shared_ptr<Interpolation::Impl>(
             new detail::XABRInterpolationImpl<I1, I2, detail::SviSpecs>(
                 xBegin, xEnd, yBegin, t, forward,
-                boost::assign::list_of(a)(b)(sigma)(rho)(m),
-                boost::assign::list_of(aIsFixed)(bIsFixed)(sigmaIsFixed)(
-                    rhoIsFixed)(mIsFixed),
+                {a, b, sigma, rho, m},
+                {aIsFixed, bIsFixed, sigmaIsFixed, rhoIsFixed, mIsFixed},
                 vegaWeighted, endCriteria, optMethod, errorAccept, useMaxError,
                 maxGuesses));
-        coeffs_ = ext::dynamic_pointer_cast<
-            detail::XABRCoeffHolder<detail::SviSpecs> >(impl_);
     }
-    Real expiry() const { return coeffs_->t_; }
-    Real forward() const { return coeffs_->forward_; }
-    Real a() const { return coeffs_->params_[0]; }
-    Real b() const { return coeffs_->params_[1]; }
-    Real sigma() const { return coeffs_->params_[2]; }
-    Real rho() const { return coeffs_->params_[3]; }
-    Real m() const { return coeffs_->params_[4]; }
-    Real rmsError() const { return coeffs_->error_; }
-    Real maxError() const { return coeffs_->maxError_; }
+    Real expiry() const { return coeffs().t_; }
+    Real forward() const { return coeffs().forward_; }
+    Real a() const { return coeffs().params_[0]; }
+    Real b() const { return coeffs().params_[1]; }
+    Real sigma() const { return coeffs().params_[2]; }
+    Real rho() const { return coeffs().params_[3]; }
+    Real m() const { return coeffs().params_[4]; }
+    Real rmsError() const { return coeffs().error_; }
+    Real maxError() const { return coeffs().maxError_; }
     const std::vector<Real> &interpolationWeights() const {
-        return coeffs_->weights_;
+        return coeffs().weights_;
     }
-    EndCriteria::Type endCriteria() { return coeffs_->XABREndCriteria_; }
+    EndCriteria::Type endCriteria() { return coeffs().XABREndCriteria_; }
 
   private:
-    ext::shared_ptr<detail::XABRCoeffHolder<detail::SviSpecs> > coeffs_;
+    const detail::XABRCoeffHolder<detail::SviSpecs>& coeffs() const {
+        return *dynamic_cast<detail::XABRCoeffHolder<detail::SviSpecs>*>(impl_.get());
+    }
 };
 
 //! %Svi interpolation factory and traits
 class Svi {
   public:
-    Svi(Time t, Real forward, Real a, Real b, Real sigma, Real rho, Real m,
-         bool aIsFixed, bool bIsFixed, bool sigmaIsFixed, bool rhoIsFixed,
-         bool mIsFixed, bool vegaWeighted = false,
-         const ext::shared_ptr<EndCriteria> endCriteria =
-             ext::shared_ptr<EndCriteria>(),
-         const ext::shared_ptr<OptimizationMethod> optMethod =
-             ext::shared_ptr<OptimizationMethod>(),
-         const Real errorAccept = 0.0020, const bool useMaxError = false,
-         const Size maxGuesses = 50)
-        : t_(t), forward_(forward), a_(a), b_(b), sigma_(sigma), rho_(rho),
-          m_(m), aIsFixed_(aIsFixed), bIsFixed_(bIsFixed),
-          sigmaIsFixed_(sigmaIsFixed), rhoIsFixed_(rhoIsFixed),
-          mIsFixed_(mIsFixed), vegaWeighted_(vegaWeighted),
-          endCriteria_(endCriteria), optMethod_(optMethod),
-          errorAccept_(errorAccept), useMaxError_(useMaxError),
-          maxGuesses_(maxGuesses) {}
+    Svi(Time t,
+        Real forward,
+        Real a,
+        Real b,
+        Real sigma,
+        Real rho,
+        Real m,
+        bool aIsFixed,
+        bool bIsFixed,
+        bool sigmaIsFixed,
+        bool rhoIsFixed,
+        bool mIsFixed,
+        bool vegaWeighted = false,
+        ext::shared_ptr<EndCriteria> endCriteria = ext::shared_ptr<EndCriteria>(),
+        ext::shared_ptr<OptimizationMethod> optMethod = ext::shared_ptr<OptimizationMethod>(),
+        const Real errorAccept = 0.0020,
+        const bool useMaxError = false,
+        const Size maxGuesses = 50)
+    : t_(t), forward_(forward), a_(a), b_(b), sigma_(sigma), rho_(rho), m_(m), aIsFixed_(aIsFixed),
+      bIsFixed_(bIsFixed), sigmaIsFixed_(sigmaIsFixed), rhoIsFixed_(rhoIsFixed),
+      mIsFixed_(mIsFixed), vegaWeighted_(vegaWeighted), endCriteria_(std::move(endCriteria)),
+      optMethod_(std::move(optMethod)), errorAccept_(errorAccept), useMaxError_(useMaxError),
+      maxGuesses_(maxGuesses) {}
     template <class I1, class I2>
     Interpolation interpolate(const I1 &xBegin, const I1 &xEnd,
                               const I2 &yBegin) const {

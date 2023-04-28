@@ -37,7 +37,6 @@ namespace QuantLib {
     class BlackCalculator {
       private:
         class Calculator;
-        friend class Calculator;
       public:
         BlackCalculator(const ext::shared_ptr<StrikedTypePayoff>& payoff,
                         Real forward,
@@ -48,7 +47,7 @@ namespace QuantLib {
                         Real forward,
                         Real stdDev,
                         Real discount = 1.0);
-        virtual ~BlackCalculator() {}
+        virtual ~BlackCalculator() = default;
 
         Real value() const;
 
